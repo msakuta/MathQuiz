@@ -134,13 +134,34 @@ function Complex(){
 	this.b = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
 }
 
-Complex.prototype.solution = function(){
+/// ------------- ComplexAdd class --------------------------
+function ComplexAdd(){
+	Complex.call(this);
+}
+inherit(ComplexAdd, Complex);
+
+ComplexAdd.prototype.solution = function(){
+	return formatComplex(complexAdd(this.a, this.b));
+}
+
+ComplexAdd.prototype.formatProblem = function(){
+	return parenComplex(this.a) + "+" + parenComplex(this.b);
+}
+
+/// ------------- ComplexMultiply class --------------------------
+function ComplexMultiply(){
+	Complex.call(this);
+}
+inherit(ComplexMultiply, Complex);
+
+ComplexMultiply.prototype.solution = function(){
 	return formatComplex(complexMultiply(this.a, this.b));
 }
 
-Complex.prototype.formatProblem = function(){
+ComplexMultiply.prototype.formatProblem = function(){
 	return parenComplex(this.a) + parenComplex(this.b);
 }
+
 
 /// Enclose by parentheses if necessary
 function parenComplex(a){
@@ -159,6 +180,10 @@ function formatComplex(a){
 		return (a[1] === 1 ? "" : a[1]) + "i";
 	else
 		return a[0] + (a[1] < 0 ? "-" : "+") + (a[1] === 1 ? "" : Math.abs(a[1])) + "i";
+}
+
+function complexAdd(a, b){
+	return [a[0] + b[0], a[1] + b[1]];
 }
 
 function complexMultiply(a, b){
@@ -382,7 +407,8 @@ function start(){
 		probClasses.push([0.4, IExp]);
 	}
 	if(document.getElementById("comp").checked){
-		probClasses.push([1, Complex]);
+		probClasses.push([0.5, ComplexAdd]);
+		probClasses.push([0.5, ComplexMultiply]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
