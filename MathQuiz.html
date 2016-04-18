@@ -84,27 +84,32 @@ var optionCount = 4;
 
 var correctAns;
 
-function formatFormula(f, pow){
+function formatFormula(sign, f, pow){
 	var primary = pow === 0 ? "" : pow === 1 ? "x" : "x^" + pow;
-	return f === 0 ? "0" : (f === 1 ? primary === "" ? "1" : "" : f) + "" + primary;
+	var factor = (f === 1 ? primary === "" ? "1" : "" : f);
+	var signStr = sign < 0 ? "-" : "";
+	return f === 0 ? "0" : pow < 0 ? signStr + "\\frac{" + factor + "}{" + primary + "}" : signStr + factor + primary;
 }
 
 function start(){
 	var problem = document.getElementById("problem");
-	var f = Math.floor(Math.random() * 3) + 1;
+	var sign = (Math.floor(Math.random() * 2) - 1) * 2;
+	var f = Math.floor(Math.random() * 6);
 	var pow = Math.floor(Math.random() * 3) + 1;
-	problem.innerHTML = "$$\\frac{d}{dx} " + formatFormula(f, pow) + "$$";
+	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula(sign, f, pow) + " \\right)$$";
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
+		var isign;
 		var incf;
 		var ipow;
 		do{
-			incf = Math.floor(f * (Math.random() * 5 + 2));
+			isign = (Math.floor(Math.random() * 2) - 1) * 2;
+			incf = Math.floor((Math.random() * (6 * 3)));
 			ipow = Math.floor(Math.random() * 3);
 			// Prevent random formulae from being "accidentally" the same as correct answer.
-		}while(incf === f * pow && ipow === pow-1);
-		options[i] = formatFormula(incf, ipow);
+		}while(isign === sign && incf === f * pow && ipow === pow-1);
+		options[i] = formatFormula(isign, incf, ipow);
 	}
 	var permutedOptions = [];
 	for(var i = 0; i < optionCount; i++){
@@ -114,7 +119,7 @@ function start(){
 	}
 
 	correctAns = Math.floor(Math.random() * optionCount);
-	permutedOptions[correctAns] = formatFormula(f * pow, pow-1);
+	permutedOptions[correctAns] = formatFormula(sign, f * pow, pow-1);
 
 	for(var i = 0; i < optionCount; i++){
 		var elem = document.getElementById("ans" + (i + 1));
