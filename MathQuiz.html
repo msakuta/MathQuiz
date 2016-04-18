@@ -54,10 +54,13 @@
 	</head>
 	<body>
 		<h1>MathQuiz</h1>
-		<input type="checkbox" id="dpoly" checked>Derivative of polynomials
-		<input type="checkbox" id="delem" checked>Derivative of elementary functions
-		<input type="checkbox" id="ipoly" checked>Integral of polynomials
-		<div><input type="button" onclick="start()" value="Start Over"></div>
+		<table style="text-align: left;  border: 2px solid #afafaf">
+		<tr><td><input type="checkbox" id="dpoly" checked>Derivative of polynomials</td>
+		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
+		<tr><td><input type="checkbox" id="ipoly" checked>Integral of polynomials</td>
+		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
+		</table>
+		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
 		</table>
 		<hr>
@@ -160,6 +163,25 @@ function generateDLog(){
 	return generateDElem(["\\log"]);
 }
 
+function generateIElem(funcList){
+	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
+	var f = Math.floor(Math.random() * 6) + 1;
+	var fun = funcList[Math.floor(Math.random() * funcList.length)];
+	var pow = 0;
+	var f2 = Math.floor(Math.random() * 6) + 1;
+	f *= f2;
+	var pow2 = 1;
+	return [sign, f, pow, fun, f2, pow2, false, symbolicIntegral];
+}
+
+function generateITri(){
+	return generateIElem(["\\sin", "\\cos"]);
+}
+
+function generateIExp(){
+	return generateIElem(["\\exp"]);
+}
+
 function symbolicDerivative(vec){
 	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
 	var polynomial = fun === "";
@@ -197,23 +219,16 @@ function symbolicIntegral(vec){
 	switch(fun){
 		case "\\sin":
 			fun = "\\cos";
-			pow += pow2-1;
-			f *= f2 * pow2;
+			f /= f2;
 			sign *= -1;
 			break;
 		case "\\cos":
 			fun = "\\sin";
-			pow += pow2-1;
-			f *= f2 * pow2;
+			f /= f2;
 			break;
 		case "\\exp":
-			pow -= pow2;
-			f *= f2 * pow2;
-			break;
-		case "\\log":
-			fun = "";
-			pow = -1;
-			f *= pow2;
+			pow = 0;
+			f /= f2 * pow2;
 			break;
 	}
 	if(polynomial){
@@ -237,6 +252,10 @@ function start(){
 	}
 	if(document.getElementById("ipoly").checked)
 		probClasses.push([1, generateIPoly]);
+	if(document.getElementById("ielem").checked){
+		probClasses.push([0.4, generateITri]);
+		probClasses.push([0.4, generateIExp]);
+	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
 		return;
