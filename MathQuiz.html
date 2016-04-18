@@ -56,6 +56,7 @@
 		<h1>MathQuiz</h1>
 		<input type="checkbox" id="dpoly" checked>Derivative of polynomials
 		<input type="checkbox" id="delem" checked>Derivative of elementary functions
+		<input type="checkbox" id="ipoly" checked>Integral of polynomials
 		<div><input type="button" onclick="start()" value="Start Over"></div>
 		<table id="scoreboard">
 		</table>
@@ -92,9 +93,9 @@ var correctAns;
 var probClasses = [];
 
 function formatFormula(vec){
-	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
+	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5], constant = vec[6];
 	if(f === 0)
-		return "0";
+		return constant ? "C" : "0";
 	// Normalize notation
 	if(f < 0){
 		sign *= -1;
@@ -110,17 +111,29 @@ function formatFormula(vec){
 		var primary2 = pow2 === 0 ? "" : Math.abs(pow2) === 1 ? "x" : "x^{" + Math.abs(pow2) + "}";
 		ret += fun + "\\left(" + (pow2 < 0 ? "\\frac{" + factor2 + "}{" + primary2 + "}" : factor2 + primary2) + "\\right)";
 	}
+	if(constant)
+		ret += "+C";
 	return ret;
 }
 
-function generateDPoly(){
+function generatePoly(integral){
 	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
 	var f = Math.floor(Math.random() * 10);
 	var fun = "";
 	var pow = Math.floor(Math.random() * 10) - 5;
+	if(integral && pow !== 0)
+		f *= pow+1;
 	var f2 = 0;
 	var pow2 = 0;
-	return [sign, f, pow, fun, f2, pow2];
+	return [sign, f, pow, fun, f2, pow2, false, integral ? symbolicIntegral : symbolicDerivative];
+}
+
+function generateDPoly(){
+	return generatePoly(false);
+}
+
+function generateIPoly(){
+	return generatePoly(true);
 }
 
 function generateDElem(funcList){
@@ -131,8 +144,8 @@ function generateDElem(funcList){
 	var f2 = fun === "\\log" ? 1 : Math.floor(Math.random() * 6) + 1;
 	var pow2 = Math.floor(Math.random() * 6) - 3;
 	if(0 <= pow2) // Prevent constant argument
-		pow2++
-	return [sign, f, pow, fun, f2, pow2];
+		pow2++;
+	return [sign, f, pow, fun, f2, pow2, false, symbolicDerivative];
 }
 
 function generateDTri(){
@@ -178,6 +191,40 @@ function symbolicDerivative(vec){
 		return [sign, f, pow, fun, f2, pow2];
 }
 
+function symbolicIntegral(vec){
+	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
+	var polynomial = fun === "";
+	switch(fun){
+		case "\\sin":
+			fun = "\\cos";
+			pow += pow2-1;
+			f *= f2 * pow2;
+			sign *= -1;
+			break;
+		case "\\cos":
+			fun = "\\sin";
+			pow += pow2-1;
+			f *= f2 * pow2;
+			break;
+		case "\\exp":
+			pow -= pow2;
+			f *= f2 * pow2;
+			break;
+		case "\\log":
+			fun = "";
+			pow = -1;
+			f *= pow2;
+			break;
+	}
+	if(polynomial){
+		if(pow === -1)
+			return [sign, f, 0, "\\log", 1, 1, true];
+		else
+			return [sign, f / (pow+1), pow+1, fun, f2, pow2, true];
+	}
+	else
+		return [sign, f, pow, fun, f2, pow2, true];
+}
 
 function start(){
 	probClasses = [];
@@ -188,6 +235,8 @@ function start(){
 		probClasses.push(generateDExp);
 		probClasses.push(generateDLog);
 	}
+	if(document.getElementById("ipoly").checked)
+		probClasses.push(generateIPoly);
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
 		return;
@@ -229,16 +278,20 @@ function next(){
 	var problem = document.getElementById("problem");
 	var generateProblem = probClasses[Math.floor(Math.random() * probClasses.length)];
 	var vec = generateProblem();
-	problem.innerHTML = "$$\\frac{d}{dx} \\left\\{" + formatFormula(vec) + " \\right\\}$$";
+	problem.innerHTML = "$$" + (
+		vec[7] === symbolicIntegral ? "\\int" : "\\frac{d}{dx} ")
+		+ "\\left\\{" + formatFormula(vec) + " \\right\\}"
+		+ (vec[7] === symbolicIntegral ? "dx" : "")
+		+ "$$";
 
-	var correctAnsStr = formatFormula(symbolicDerivative(vec));
+	var correctAnsStr = formatFormula(vec[7](vec));
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
 		var str;
 		do{
 			var ivec = generateProblem();
-			str = formatFormula(symbolicDerivative(ivec));
+			str = formatFormula(vec[7](ivec));
 			// Prevent random formulae from being "accidentally" the same as correct answer.
 		}while(correctAnsStr === str);
 		options[i] = str;
