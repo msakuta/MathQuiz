@@ -95,6 +95,67 @@ var results;
 var correctAns;
 var probClasses = [];
 
+/// Mix fields of source into target.
+/// This can be used like a dirty multiple inheritance.
+function mixin(target, source){
+	for(var k in source){
+		target[k] = source[k];
+	}
+}
+
+/// Custom inheritance function that prevents the super class's constructor
+/// from being called on inehritance.
+/// Also assigns constructor property of the subclass properly.
+/// @param subclass The constructor of subclass that should be inherit base
+/// @param base The constructor of the base class which subclass's prototype should point to.
+/// @param methods Optional argument for a table containing methods to define for subclass.
+///                The table is mixed-in to subclass, so it won't be a base class of subclass.
+function inherit(subclass,base,methods){
+	// If the browser or ECMAScript supports Object.create, use it
+	// (but don't remember to redirect constructor pointer to subclass)
+	if(Object.create){
+		subclass.prototype = Object.create(base.prototype);
+	}
+	else{
+		var sub = function(){};
+		sub.prototype = base.prototype;
+		subclass.prototype = new sub;
+	}
+	if(methods)
+		mixin(subclass.prototype, methods);
+	subclass.prototype.constructor = subclass;
+}
+
+/// ------------- Derivative class --------------------------
+function Derivative(){
+
+}
+
+Derivative.prototype.solution = function(){
+	return formatFormula(symbolicDerivative(this.vec));
+}
+
+Derivative.prototype.formatProblem = function(){
+	return "\\frac{d}{dx} "
+		+ "\\left\\{" + formatFormula(this.vec) + " \\right\\}";
+}
+
+/// ------------- Integral class --------------------------
+function Integral(){
+
+}
+
+Integral.prototype.solution = function(){
+	return formatFormula(symbolicIntegral(this.vec));
+}
+
+Integral.prototype.formatProblem = function(){
+	return "\\int"
+		+ "\\left\\{" + formatFormula(this.vec) + " \\right\\}"
+		+ "dx";
+}
+
+
 function formatFormula(vec){
 	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5], constant = vec[6];
 	if(f === 0)
@@ -128,16 +189,20 @@ function generatePoly(integral){
 		f *= pow+1;
 	var f2 = 0;
 	var pow2 = 0;
-	return [sign, f, pow, fun, f2, pow2, false, integral ? symbolicIntegral : symbolicDerivative];
+	return [sign, f, pow, fun, f2, pow2, false];
 }
 
-function generateDPoly(){
-	return generatePoly(false);
+function DPoly(){
+	Derivative.call(this);
+	this.vec = generatePoly(false);
 }
+inherit(DPoly, Derivative);
 
-function generateIPoly(){
-	return generatePoly(true);
+function IPoly(){
+	Integral.call(this);
+	this.vec = generatePoly(true);
 }
+inherit(IPoly, Integral);
 
 function generateDElem(funcList){
 	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
@@ -148,20 +213,26 @@ function generateDElem(funcList){
 	var pow2 = Math.floor(Math.random() * 6) - 3;
 	if(0 <= pow2) // Prevent constant argument
 		pow2++;
-	return [sign, f, pow, fun, f2, pow2, false, symbolicDerivative];
+	return [sign, f, pow, fun, f2, pow2, false];
 }
 
-function generateDTri(){
-	return generateDElem(["\\sin", "\\cos"]);
+function DTri(){
+	Derivative.call(this);
+	this.vec = generateDElem(["\\sin", "\\cos"]);
 }
+inherit(DTri, Derivative);
 
-function generateDExp(){
-	return generateDElem(["\\exp"]);
+function DExp(){
+	Derivative.call(this);
+	this.vec = generateDElem(["\\exp"]);
 }
+inherit(DExp, Derivative);
 
-function generateDLog(){
-	return generateDElem(["\\log"]);
+function DLog(){
+	Derivative.call(this);
+	this.vec = generateDElem(["\\log"]);
 }
+inherit(DLog, Derivative);
 
 function generateIElem(funcList){
 	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
@@ -171,16 +242,20 @@ function generateIElem(funcList){
 	var f2 = Math.floor(Math.random() * 6) + 1;
 	f *= f2;
 	var pow2 = 1;
-	return [sign, f, pow, fun, f2, pow2, false, symbolicIntegral];
+	return [sign, f, pow, fun, f2, pow2, false];
 }
 
-function generateITri(){
-	return generateIElem(["\\sin", "\\cos"]);
+function ITri(){
+	Integral.call(this);
+	this.vec = generateIElem(["\\sin", "\\cos"]);
 }
+inherit(ITri, Integral);
 
-function generateIExp(){
-	return generateIElem(["\\exp"]);
+function IExp(){
+	Integral.call(this);
+	this.vec = generateIElem(["\\exp"]);
 }
+inherit(IExp, Integral);
 
 function symbolicDerivative(vec){
 	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
@@ -244,17 +319,17 @@ function symbolicIntegral(vec){
 function start(){
 	probClasses = [];
 	if(document.getElementById("dpoly").checked)
-		probClasses.push([1, generateDPoly]);
+		probClasses.push([1, DPoly]);
 	if(document.getElementById("delem").checked){
-		probClasses.push([0.3, generateDTri]);
-		probClasses.push([0.3, generateDExp]);
-		probClasses.push([0.3, generateDLog]);
+		probClasses.push([0.3, DTri]);
+		probClasses.push([0.3, DExp]);
+		probClasses.push([0.3, DLog]);
 	}
 	if(document.getElementById("ipoly").checked)
-		probClasses.push([1, generateIPoly]);
+		probClasses.push([1, IPoly]);
 	if(document.getElementById("ielem").checked){
-		probClasses.push([0.4, generateITri]);
-		probClasses.push([0.4, generateIExp]);
+		probClasses.push([0.4, ITri]);
+		probClasses.push([0.4, IExp]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
@@ -294,7 +369,7 @@ function next(){
 		points.style.display = "initial";
 		return;
 	}
-	var generateProblem = (function(){
+	var Problem = (function(){
 		var cumulativeWeights = [];
 		for(var i = 0; i < probClasses.length; i++){
 			cumulativeWeights[i] = probClasses[i][0];
@@ -308,23 +383,20 @@ function next(){
 		}
 		// Should never reach here
 	})();
-	var vec = generateProblem();
+	var vec = new Problem();
 
 	var problem = document.getElementById("problem");
-	problem.innerHTML = "$$" + (
-		vec[7] === symbolicIntegral ? "\\int" : "\\frac{d}{dx} ")
-		+ "\\left\\{" + formatFormula(vec) + " \\right\\}"
-		+ (vec[7] === symbolicIntegral ? "dx" : "")
-		+ "$$";
+	problem.innerHTML = "$$" + vec.formatProblem() + "$$";
 
-	var correctAnsStr = formatFormula(vec[7](vec));
+	var correctAnsStr = vec.solution();
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
 		var str;
 		do{
-			var ivec = generateProblem();
-			str = formatFormula(vec[7](ivec));
+			var ivec = new Problem();
+			// Generate answers from the same class since they're more realistic
+			str = ivec.solution();
 			// Prevent random formulae from being "accidentally" the same as correct answer.
 		}while(correctAnsStr === str);
 		options[i] = str;
