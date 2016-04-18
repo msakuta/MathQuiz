@@ -54,11 +54,13 @@
 	</head>
 	<body>
 		<h1>MathQuiz</h1>
+		Select classes of problems below and press "Start Over".
 		<table style="text-align: left;  border: 2px solid #afafaf">
 		<tr><td><input type="checkbox" id="dpoly" checked>Derivative of polynomials</td>
 		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="ipoly" checked>Integral of polynomials</td>
 		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
+		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -124,6 +126,43 @@ function inherit(subclass,base,methods){
 	if(methods)
 		mixin(subclass.prototype, methods);
 	subclass.prototype.constructor = subclass;
+}
+
+/// ------------- Complex class --------------------------
+function Complex(){
+	this.a = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+	this.b = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+}
+
+Complex.prototype.solution = function(){
+	return formatComplex(complexMultiply(this.a, this.b));
+}
+
+Complex.prototype.formatProblem = function(){
+	return parenComplex(this.a) + parenComplex(this.b);
+}
+
+/// Enclose by parentheses if necessary
+function parenComplex(a){
+	if(a[0] !== 0 && a[1] !== 0 || a[0] < 0 || a[1] < 0)
+		return "(" + formatComplex(a) + ")";
+	else
+		return formatComplex(a);
+}
+
+function formatComplex(a){
+	if(a[0] === 0 && a[1] === 0)
+		return "0";
+	else if(a[0] !== 0 && a[1] === 0)
+		return a[0];
+	else if(a[0] === 0 && a[1] !== 0)
+		return (a[1] === 1 ? "" : a[1]) + "i";
+	else
+		return a[0] + (a[1] < 0 ? "-" : "+") + (a[1] === 1 ? "" : Math.abs(a[1])) + "i";
+}
+
+function complexMultiply(a, b){
+	return [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];
 }
 
 /// ------------- Derivative class --------------------------
@@ -330,6 +369,9 @@ function start(){
 	if(document.getElementById("ielem").checked){
 		probClasses.push([0.4, ITri]);
 		probClasses.push([0.4, IExp]);
+	}
+	if(document.getElementById("comp").checked){
+		probClasses.push([1, Complex]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
