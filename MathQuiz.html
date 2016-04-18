@@ -54,7 +54,9 @@
 	</head>
 	<body>
 		<h1>MathQuiz</h1>
-		<input type="button" onclick="start()" value="Start">
+		<input type="button" onclick="start()" value="Start Over">
+		<table id="scoreboard">
+		</table>
 		<hr>
 		<div id="container">
 
@@ -67,9 +69,9 @@
 <input type="radio" name="answer" id="4"><span id="ans4"></span>
 <p><input type="button" value="Answer" onclick="answer()"></p>
 </div>
-		<div id="message" style="font-size: 15pt; color: red"></div>
-		<div><input type="button" id="restart" onclick="start()" value="Next Problem" style="display: none"></div>
-		<div id="points"></div>
+		<div id="message" style="font-size: 15pt; color: red; font-weight: bold"></div>
+		<div><input type="button" id="next" onclick="next()" value="Next Problem" style="display: none"></div>
+		<div id="points" style="font-size: 15pt; display:none; font-weight: bold"></div>
 		<hr>
 		<div id="highScores"></div>
 		<hr>
@@ -80,8 +82,10 @@
 
 // Constants
 var optionCount = 4;
+var probCount = 10;
 
-
+var currentProblem = 0;
+var results;
 var correctAns;
 
 function formatFormula(vec){
@@ -125,6 +129,39 @@ function symbolicDerivative(vec){
 
 
 function start(){
+	var table = document.getElementById("scoreboard");
+	while(table.firstChild)
+		table.removeChild(table.firstChild);
+
+	var headerRow = document.createElement("tr");
+	for(var i = 0; i < probCount; i++){
+		var header = document.createElement("td");
+		header.innerHTML = i + 1;
+		headerRow.appendChild(header);
+	}
+	table.appendChild(headerRow);
+
+	var points = document.getElementById("points");
+	points.style.display = "none";
+
+	currentProblem = -1;
+	results = [];
+	next();
+}
+
+function next(){
+	if(probCount <= currentProblem + 1){
+		var incorrects = 0;
+		for(var i = 0; i < results.length; i++){
+			if(results[i])
+				incorrects++;
+		}
+		var points = document.getElementById("points");
+		points.innerHTML = "Congraturations!<br>"
+			+ "You have answered " + (probCount - incorrects) + "/" + probCount + " problems correctly!";
+		points.style.display = "initial";
+		return;
+	}
 	var problem = document.getElementById("problem");
 	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
 	var f = Math.floor(Math.random() * 6);
@@ -133,7 +170,7 @@ function start(){
 	var f2 = Math.floor(Math.random() * 6) + 1;
 	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula([sign, f, pow, fun, f2]) + " \\right)$$";
 
-	var correctAnsStr = formatFormula(sign, f * pow, pow-1);
+	var correctAnsStr = formatFormula(symbolicDerivative([sign, f, pow, fun, f2]));
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
@@ -142,24 +179,19 @@ function start(){
 			var isign = (Math.floor(Math.random() * 2)) * 2 - 1;
 			var incf = Math.floor((Math.random() * (6 * 3)));
 			var ipow = Math.floor(Math.random() * 7) - 4;
-			str = formatFormula(isign, incf, ipow);
+			var if2 = Math.floor(Math.random() * 6) + 1;
+			str = formatFormula(symbolicDerivative([isign, incf, ipow, fun, if2]));
 			// Prevent random formulae from being "accidentally" the same as correct answer.
 		}while(correctAnsStr === str);
 		options[i] = str;
 	}
-	var permutedOptions = [];
-	for(var i = 0; i < optionCount; i++){
-		var idx = Math.floor(Math.random() * options.length);
-		permutedOptions.push(options[idx]);
-		options.splice(idx,1);
-	}
 
 	correctAns = Math.floor(Math.random() * optionCount);
-	permutedOptions[correctAns] = correctAnsStr;
+	options[correctAns] = correctAnsStr;
 
 	for(var i = 0; i < optionCount; i++){
 		var elem = document.getElementById("ans" + (i + 1));
-		elem.innerHTML = "$ \\displaystyle " + permutedOptions[i] + "$";
+		elem.innerHTML = "$ \\displaystyle " + options[i] + "$";
 		var radio = document.getElementById(i + 1);
 		radio.checked = false;
 	}
@@ -167,8 +199,14 @@ function start(){
 	var messageElem = document.getElementById("message");
 	messageElem.innerHTML = "";
 
-	var restartElem = document.getElementById("restart");
-	restartElem.style.display = "none";
+	var nextElem = document.getElementById("next");
+	nextElem.style.display = "none";
+
+	currentProblem++;
+	var scoreboard = document.getElementById("scoreboard");
+	if(0 < currentProblem)
+		scoreboard.firstChild.children[currentProblem-1].style.border = "";
+	scoreboard.firstChild.children[currentProblem].style.border = "3px solid #0000ff";
 
 	MathJax.Hub.Typeset();
 }
@@ -183,8 +221,13 @@ function answer(){
 	var messageElem = document.getElementById("message");
 	messageElem.innerHTML = message;
 
-	var restartElem = document.getElementById("restart");
-	restartElem.style.display = radio.checked ? "inline" : "none";
+	var nextElem = document.getElementById("next");
+	nextElem.value = currentProblem < probCount-1 ? "Next Problem" : "Finish";
+	nextElem.style.display = radio.checked ? "inline" : "none";
+
+	results[currentProblem] |= !radio.checked;
+	var scoreboard = document.getElementById("scoreboard");
+	scoreboard.firstChild.children[currentProblem].style.backgroundColor = !results[currentProblem] ? "#00ff00" : "#ff0000";
 }
 
 window.onload = start;
