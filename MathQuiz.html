@@ -123,20 +123,33 @@ function generateDPoly(){
 	return [sign, f, pow, fun, f2, pow2];
 }
 
-function generateDElem(){
+function generateDElem(funcList){
 	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
 	var f = Math.floor(Math.random() * 6) + 1;
-	var fun = ["\\sin", "\\cos"][Math.floor(Math.random() * 2)];
+	var fun = funcList[Math.floor(Math.random() * funcList.length)];
 	var pow = 0;
-	var f2 = Math.floor(Math.random() * 6) + 1;
+	var f2 = fun === "\\log" ? 1 : Math.floor(Math.random() * 6) + 1;
 	var pow2 = Math.floor(Math.random() * 6) - 3;
 	if(0 <= pow2) // Prevent constant argument
 		pow2++
 	return [sign, f, pow, fun, f2, pow2];
 }
 
+function generateDTri(){
+	return generateDElem(["\\sin", "\\cos"]);
+}
+
+function generateDExp(){
+	return generateDElem(["\\exp"]);
+}
+
+function generateDLog(){
+	return generateDElem(["\\log"]);
+}
+
 function symbolicDerivative(vec){
 	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
+	var polynomial = fun === "";
 	switch(fun){
 		case "\\sin":
 			fun = "\\cos";
@@ -149,8 +162,17 @@ function symbolicDerivative(vec){
 			f *= f2 * pow2;
 			sign *= -1;
 			break;
+		case "\\exp":
+			pow += pow2-1;
+			f *= f2 * pow2;
+			break;
+		case "\\log":
+			fun = "";
+			pow = -1;
+			f *= pow2;
+			break;
 	}
-	if(fun === "")
+	if(polynomial)
 		return [sign, f * pow, pow-1, fun, f2, pow2];
 	else
 		return [sign, f, pow, fun, f2, pow2];
@@ -161,8 +183,11 @@ function start(){
 	probClasses = [];
 	if(document.getElementById("dpoly").checked)
 		probClasses.push(generateDPoly);
-	if(document.getElementById("delem").checked)
-		probClasses.push(generateDElem);
+	if(document.getElementById("delem").checked){
+		probClasses.push(generateDTri);
+		probClasses.push(generateDExp);
+		probClasses.push(generateDLog);
+	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
 		return;
