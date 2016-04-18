@@ -281,6 +281,12 @@ function generateIElem(funcList){
 	var f2 = Math.floor(Math.random() * 6) + 1;
 	f *= f2;
 	var pow2 = 1;
+	// A special case that can be directly integrated
+	if(fun === "\\exp" && Math.random() < 0.25){
+		pow = ((Math.floor(Math.random() * 2)) * 2 - 1) * (Math.floor(Math.random() * 3) + 1);
+		pow2 = pow + 1;
+		f *= pow2;
+	}
 	return [sign, f, pow, fun, f2, pow2, false];
 }
 
