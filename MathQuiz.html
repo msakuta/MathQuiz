@@ -229,14 +229,14 @@ function symbolicIntegral(vec){
 function start(){
 	probClasses = [];
 	if(document.getElementById("dpoly").checked)
-		probClasses.push(generateDPoly);
+		probClasses.push([1, generateDPoly]);
 	if(document.getElementById("delem").checked){
-		probClasses.push(generateDTri);
-		probClasses.push(generateDExp);
-		probClasses.push(generateDLog);
+		probClasses.push([0.3, generateDTri]);
+		probClasses.push([0.3, generateDExp]);
+		probClasses.push([0.3, generateDLog]);
 	}
 	if(document.getElementById("ipoly").checked)
-		probClasses.push(generateIPoly);
+		probClasses.push([1, generateIPoly]);
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
 		return;
@@ -275,9 +275,23 @@ function next(){
 		points.style.display = "initial";
 		return;
 	}
-	var problem = document.getElementById("problem");
-	var generateProblem = probClasses[Math.floor(Math.random() * probClasses.length)];
+	var generateProblem = (function(){
+		var cumulativeWeights = [];
+		for(var i = 0; i < probClasses.length; i++){
+			cumulativeWeights[i] = probClasses[i][0];
+			if(0 < i)
+				cumulativeWeights[i] += cumulativeWeights[i-1];
+		}
+		var picker = Math.random() * cumulativeWeights[probClasses.length-1];
+		for(var i = 0; i < probClasses.length; i++){
+			if(picker < cumulativeWeights[i])
+				return probClasses[i][1];
+		}
+		// Should never reach here
+	})();
 	var vec = generateProblem();
+
+	var problem = document.getElementById("problem");
 	problem.innerHTML = "$$" + (
 		vec[7] === symbolicIntegral ? "\\int" : "\\frac{d}{dx} ")
 		+ "\\left\\{" + formatFormula(vec) + " \\right\\}"
