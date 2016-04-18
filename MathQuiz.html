@@ -84,7 +84,10 @@ var optionCount = 4;
 
 var correctAns;
 
-function formatFormula(sign, f, pow){
+function formatFormula(vec){
+	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4];
+	if(f === 0)
+		return "0";
 	// Normalize notation
 	if(f < 0){
 		sign *= -1;
@@ -93,16 +96,42 @@ function formatFormula(sign, f, pow){
 
 	var primary = pow === 0 ? "" : Math.abs(pow) === 1 ? "x" : "x^{" + Math.abs(pow) + "}";
 	var factor = (0 < pow && f === 1 ? primary === "" ? "1" : "" : f);
+	var factor2 = (f2 === 1 ? "" : f2);
 	var signStr = sign < 0 ? "-" : "";
-	return f === 0 ? "0" : pow < 0 ? signStr + "\\frac{" + factor + "}{" + primary + "}" : signStr + factor + primary;
+	var ret = f === 0 ? "0" : pow < 0 ? signStr + "\\frac{" + factor + "}{" + primary + "}" : signStr + factor + primary;
+	if(fun !== "")
+		ret += fun + "(" + factor2 + "x)";
+	return ret;
 }
+
+function symbolicDerivative(vec){
+	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4];
+	switch(fun){
+		case "\\sin":
+			fun = "\\cos";
+			f *= f2;
+			break;
+		case "\\cos":
+			fun = "\\sin";
+			f *= f2;
+			sign *= -1;
+			break;
+	}
+	if(fun === "")
+		return [sign, f * pow, pow-1, fun, f2];
+	else
+		return [sign, f, pow, fun, f2];
+}
+
 
 function start(){
 	var problem = document.getElementById("problem");
 	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
 	var f = Math.floor(Math.random() * 6);
-	var pow = Math.floor(Math.random() * 7) - 3;
-	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula(sign, f, pow) + " \\right)$$";
+	var fun = ["", "", "", "\\sin", "\\cos"][Math.floor(Math.random() * 5)];
+	var pow = fun === "" ? Math.floor(Math.random() * 7) - 3 : 0;
+	var f2 = Math.floor(Math.random() * 6) + 1;
+	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula([sign, f, pow, fun, f2]) + " \\right)$$";
 
 	var correctAnsStr = formatFormula(sign, f * pow, pow-1);
 
