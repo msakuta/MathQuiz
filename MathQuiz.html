@@ -22,6 +22,8 @@
 				font-size: 25px;
 			}
 
+			.nobr{white-space: nowrap}
+
 			table{
 				background-color: #f7c0a0;
 				border: 3px solid #7f7f7f;
@@ -71,10 +73,10 @@
 			<div id="problem">
 			</div>
 
-<input type="radio" name="answer" id="1"><span id="ans1"></span>
-<input type="radio" name="answer" id="2"><span id="ans2"></span>
-<input type="radio" name="answer" id="3"><span id="ans3"></span>
-<input type="radio" name="answer" id="4"><span id="ans4"></span>
+<span class="nobr"><input type="radio" name="answer" id="1"><span id="ans1"></span></span>
+<span class="nobr"><input type="radio" name="answer" id="2"><span id="ans2"></span></span>
+<span class="nobr"><input type="radio" name="answer" id="3"><span id="ans3"></span></span>
+<span class="nobr"><input type="radio" name="answer" id="4"><span id="ans4"></span></span>
 <p><input type="button" value="Answer" onclick="answer()"></p>
 </div>
 		<div id="message" style="font-size: 15pt; color: red; font-weight: bold"></div>
