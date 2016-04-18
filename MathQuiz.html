@@ -92,7 +92,7 @@ var correctAns;
 var probClasses = [];
 
 function formatFormula(vec){
-	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4];
+	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
 	if(f === 0)
 		return "0";
 	// Normalize notation
@@ -102,12 +102,14 @@ function formatFormula(vec){
 	}
 
 	var primary = pow === 0 ? "" : Math.abs(pow) === 1 ? "x" : "x^{" + Math.abs(pow) + "}";
-	var factor = (0 < pow && f === 1 ? primary === "" ? "1" : "" : f);
-	var factor2 = (f2 === 1 ? "" : f2);
+	var factor = ((0 < pow || fun !== "") && f === 1 ? primary === "" && fun === "" ? "1" : "" : f);
+	var factor2 = (0 < pow2 && f2 === 1 ? "" : f2);
 	var signStr = sign < 0 ? "-" : "";
 	var ret = f === 0 ? "0" : pow < 0 ? signStr + "\\frac{" + factor + "}{" + primary + "}" : signStr + factor + primary;
-	if(fun !== "")
-		ret += fun + "(" + factor2 + "x)";
+	if(fun !== ""){
+		var primary2 = pow2 === 0 ? "" : Math.abs(pow2) === 1 ? "x" : "x^{" + Math.abs(pow2) + "}";
+		ret += fun + "\\left(" + (pow2 < 0 ? "\\frac{" + factor2 + "}{" + primary2 + "}" : factor2 + primary2) + "\\right)";
+	}
 	return ret;
 }
 
@@ -117,7 +119,8 @@ function generateDPoly(){
 	var fun = "";
 	var pow = Math.floor(Math.random() * 10) - 5;
 	var f2 = 0;
-	return [sign, f, pow, fun, f2];
+	var pow2 = 0;
+	return [sign, f, pow, fun, f2, pow2];
 }
 
 function generateDElem(){
@@ -126,26 +129,31 @@ function generateDElem(){
 	var fun = ["\\sin", "\\cos"][Math.floor(Math.random() * 2)];
 	var pow = 0;
 	var f2 = Math.floor(Math.random() * 6) + 1;
-	return [sign, f, pow, fun, f2];
+	var pow2 = Math.floor(Math.random() * 6) - 3;
+	if(0 <= pow2) // Prevent constant argument
+		pow2++
+	return [sign, f, pow, fun, f2, pow2];
 }
 
 function symbolicDerivative(vec){
-	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4];
+	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4], pow2 = vec[5];
 	switch(fun){
 		case "\\sin":
 			fun = "\\cos";
-			f *= f2;
+			pow += pow2-1;
+			f *= f2 * pow2;
 			break;
 		case "\\cos":
 			fun = "\\sin";
-			f *= f2;
+			pow += pow2-1;
+			f *= f2 * pow2;
 			sign *= -1;
 			break;
 	}
 	if(fun === "")
-		return [sign, f * pow, pow-1, fun, f2];
+		return [sign, f * pow, pow-1, fun, f2, pow2];
 	else
-		return [sign, f, pow, fun, f2];
+		return [sign, f, pow, fun, f2, pow2];
 }
 
 
@@ -196,7 +204,7 @@ function next(){
 	var problem = document.getElementById("problem");
 	var generateProblem = probClasses[Math.floor(Math.random() * probClasses.length)];
 	var vec = generateProblem();
-	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula(vec) + " \\right)$$";
+	problem.innerHTML = "$$\\frac{d}{dx} \\left\\{" + formatFormula(vec) + " \\right\\}$$";
 
 	var correctAnsStr = formatFormula(symbolicDerivative(vec));
 
