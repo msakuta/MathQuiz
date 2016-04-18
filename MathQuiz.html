@@ -60,7 +60,8 @@
 		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="ipoly" checked>Integral of polynomials</td>
 		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
-		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td></tr>
+		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
+		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -162,6 +163,29 @@ ComplexMultiply.prototype.formatProblem = function(){
 	return parenComplex(this.a) + parenComplex(this.b);
 }
 
+/// ------------- ComplexDivision class --------------------------
+function ComplexDivision(){
+	Complex.call(this);
+	// Prevent zero division
+	while(this.b[0] === 0 && this.b[1] === 0)
+		this.b = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+}
+inherit(ComplexDivision, Complex);
+
+ComplexDivision.prototype.solution = function(){
+	var div = complexDivision(this.a, this.b);
+	if(div[0][0] === 0 && div[0][1] === 0)
+		return "0";
+	else if(div[1] === 1)
+		return formatComplex(div[0]);
+	else
+		return "\\frac{" + formatComplex(div[0]) + "}{" + div[1] + "}";
+}
+
+ComplexDivision.prototype.formatProblem = function(){
+	return "\\frac{" + formatComplex(this.a) + "}{" + formatComplex(this.b) + "}";
+}
+
 
 /// Enclose by parentheses if necessary
 function parenComplex(a){
@@ -177,9 +201,9 @@ function formatComplex(a){
 	else if(a[0] !== 0 && a[1] === 0)
 		return a[0];
 	else if(a[0] === 0 && a[1] !== 0)
-		return (a[1] === 1 ? "" : a[1]) + "i";
+		return (a[1] === 1 ? "" : a[1] === -1 ? "-" : a[1]) + "i";
 	else
-		return a[0] + (a[1] < 0 ? "-" : "+") + (a[1] === 1 ? "" : Math.abs(a[1])) + "i";
+		return a[0] + (a[1] < 0 ? "-" : "+") + (Math.abs(a[1]) === 1 ? "" : Math.abs(a[1])) + "i";
 }
 
 function complexAdd(a, b){
@@ -188,6 +212,26 @@ function complexAdd(a, b){
 
 function complexMultiply(a, b){
 	return [a[0] * b[0] - a[1] * b[1], a[0] * b[1] + a[1] * b[0]];
+}
+
+function complexDivision(a, b){
+	var divisor = b[0] * b[0] + b[1] * b[1];
+	var r = b[0];
+	var i = -b[1];
+	var r1 = a[0] * r - a[1] * i;
+	var i1 = a[0] * i + a[1] * r;
+	var div = gcd3(r1, i1, divisor);
+	return [[r1 / div, i1 / div], divisor / div];
+}
+
+/// Find the greatest common divisor of 3 values with brute force
+function gcd3(a, b, c){
+	var m = Math.max(a, Math.max(b, c));
+	for(var i = m; 0 < i; i--){
+		if((a === 0 || a % i === 0) && (b === 0 || b % i === 0) && c % i === 0)
+			return i;
+	}
+	return 1;
 }
 
 /// ------------- Derivative class --------------------------
@@ -409,6 +453,9 @@ function start(){
 	if(document.getElementById("comp").checked){
 		probClasses.push([0.5, ComplexAdd]);
 		probClasses.push([0.5, ComplexMultiply]);
+	}
+	if(document.getElementById("compdiv").checked){
+		probClasses.push([0.5, ComplexDivision]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
