@@ -257,7 +257,7 @@ function generateDElem(funcList){
 
 function DTri(){
 	Derivative.call(this);
-	this.vec = generateDElem(["\\sin", "\\cos"]);
+	this.vec = generateDElem(["\\sin", "\\cos", "\\tan"]);
 }
 inherit(DTri, Derivative);
 
@@ -316,6 +316,11 @@ function symbolicDerivative(vec){
 			pow += pow2-1;
 			f *= f2 * pow2;
 			sign *= -1;
+			break;
+		case "\\tan":
+			fun = "\\cos^{-2}";
+			pow += pow2-1;
+			f *= f2 * pow2;
 			break;
 		case "\\exp":
 			pow += pow2-1;
