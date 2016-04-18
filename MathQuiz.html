@@ -54,7 +54,9 @@
 	</head>
 	<body>
 		<h1>MathQuiz</h1>
-		<input type="button" onclick="start()" value="Start Over">
+		<input type="checkbox" id="dpoly" checked>Derivative of polynomials
+		<input type="checkbox" id="delem" checked>Derivative of elementary functions
+		<div><input type="button" onclick="start()" value="Start Over"></div>
 		<table id="scoreboard">
 		</table>
 		<hr>
@@ -87,6 +89,7 @@ var probCount = 10;
 var currentProblem = 0;
 var results;
 var correctAns;
+var probClasses = [];
 
 function formatFormula(vec){
 	var sign = vec[0], f = vec[1], pow = vec[2], fun = vec[3], f2 = vec[4];
@@ -106,6 +109,24 @@ function formatFormula(vec){
 	if(fun !== "")
 		ret += fun + "(" + factor2 + "x)";
 	return ret;
+}
+
+function generateDPoly(){
+	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
+	var f = Math.floor(Math.random() * 10);
+	var fun = "";
+	var pow = Math.floor(Math.random() * 10) - 5;
+	var f2 = 0;
+	return [sign, f, pow, fun, f2];
+}
+
+function generateDElem(){
+	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
+	var f = Math.floor(Math.random() * 6) + 1;
+	var fun = ["\\sin", "\\cos"][Math.floor(Math.random() * 2)];
+	var pow = 0;
+	var f2 = Math.floor(Math.random() * 6) + 1;
+	return [sign, f, pow, fun, f2];
 }
 
 function symbolicDerivative(vec){
@@ -129,6 +150,16 @@ function symbolicDerivative(vec){
 
 
 function start(){
+	probClasses = [];
+	if(document.getElementById("dpoly").checked)
+		probClasses.push(generateDPoly);
+	if(document.getElementById("delem").checked)
+		probClasses.push(generateDElem);
+	if(probClasses.length === 0){
+		alert("Please check at least one of problem classes");
+		return;
+	}
+
 	var table = document.getElementById("scoreboard");
 	while(table.firstChild)
 		table.removeChild(table.firstChild);
@@ -163,24 +194,18 @@ function next(){
 		return;
 	}
 	var problem = document.getElementById("problem");
-	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
-	var f = Math.floor(Math.random() * 6);
-	var fun = ["", "", "", "\\sin", "\\cos"][Math.floor(Math.random() * 5)];
-	var pow = fun === "" ? Math.floor(Math.random() * 7) - 3 : 0;
-	var f2 = Math.floor(Math.random() * 6) + 1;
-	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula([sign, f, pow, fun, f2]) + " \\right)$$";
+	var generateProblem = probClasses[Math.floor(Math.random() * probClasses.length)];
+	var vec = generateProblem();
+	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula(vec) + " \\right)$$";
 
-	var correctAnsStr = formatFormula(symbolicDerivative([sign, f, pow, fun, f2]));
+	var correctAnsStr = formatFormula(symbolicDerivative(vec));
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
 		var str;
 		do{
-			var isign = (Math.floor(Math.random() * 2)) * 2 - 1;
-			var incf = Math.floor((Math.random() * (6 * 3)));
-			var ipow = Math.floor(Math.random() * 7) - 4;
-			var if2 = Math.floor(Math.random() * 6) + 1;
-			str = formatFormula(symbolicDerivative([isign, incf, ipow, fun, if2]));
+			var ivec = generateProblem();
+			str = formatFormula(symbolicDerivative(ivec));
 			// Prevent random formulae from being "accidentally" the same as correct answer.
 		}while(correctAnsStr === str);
 		options[i] = str;
