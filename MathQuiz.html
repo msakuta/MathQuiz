@@ -85,31 +85,38 @@ var optionCount = 4;
 var correctAns;
 
 function formatFormula(sign, f, pow){
-	var primary = pow === 0 ? "" : pow === 1 ? "x" : "x^" + pow;
-	var factor = (f === 1 ? primary === "" ? "1" : "" : f);
+	// Normalize notation
+	if(f < 0){
+		sign *= -1;
+		f *= -1;
+	}
+
+	var primary = pow === 0 ? "" : Math.abs(pow) === 1 ? "x" : "x^{" + Math.abs(pow) + "}";
+	var factor = (0 < pow && f === 1 ? primary === "" ? "1" : "" : f);
 	var signStr = sign < 0 ? "-" : "";
 	return f === 0 ? "0" : pow < 0 ? signStr + "\\frac{" + factor + "}{" + primary + "}" : signStr + factor + primary;
 }
 
 function start(){
 	var problem = document.getElementById("problem");
-	var sign = (Math.floor(Math.random() * 2) - 1) * 2;
+	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
 	var f = Math.floor(Math.random() * 6);
-	var pow = Math.floor(Math.random() * 3) + 1;
+	var pow = Math.floor(Math.random() * 7) - 3;
 	problem.innerHTML = "$$\\frac{d}{dx} \\left(" + formatFormula(sign, f, pow) + " \\right)$$";
+
+	var correctAnsStr = formatFormula(sign, f * pow, pow-1);
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
-		var isign;
-		var incf;
-		var ipow;
+		var str;
 		do{
-			isign = (Math.floor(Math.random() * 2) - 1) * 2;
-			incf = Math.floor((Math.random() * (6 * 3)));
-			ipow = Math.floor(Math.random() * 3);
+			var isign = (Math.floor(Math.random() * 2)) * 2 - 1;
+			var incf = Math.floor((Math.random() * (6 * 3)));
+			var ipow = Math.floor(Math.random() * 7) - 4;
+			str = formatFormula(isign, incf, ipow);
 			// Prevent random formulae from being "accidentally" the same as correct answer.
-		}while(isign === sign && incf === f * pow && ipow === pow-1);
-		options[i] = formatFormula(isign, incf, ipow);
+		}while(correctAnsStr === str);
+		options[i] = str;
 	}
 	var permutedOptions = [];
 	for(var i = 0; i < optionCount; i++){
@@ -119,11 +126,11 @@ function start(){
 	}
 
 	correctAns = Math.floor(Math.random() * optionCount);
-	permutedOptions[correctAns] = formatFormula(sign, f * pow, pow-1);
+	permutedOptions[correctAns] = correctAnsStr;
 
 	for(var i = 0; i < optionCount; i++){
 		var elem = document.getElementById("ans" + (i + 1));
-		elem.innerHTML = "$" + permutedOptions[i] + "$";
+		elem.innerHTML = "$ \\displaystyle " + permutedOptions[i] + "$";
 		var radio = document.getElementById(i + 1);
 		radio.checked = false;
 	}
