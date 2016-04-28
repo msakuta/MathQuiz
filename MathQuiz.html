@@ -57,12 +57,15 @@
 		<h1>MathQuiz</h1>
 		Select classes of problems below and press "Start Over".
 		<table style="text-align: left;  border: 2px solid #afafaf">
+		<tr><th colspan="2">High school math</th></tr>
 		<tr><td><input type="checkbox" id="dpoly" checked>Derivative of polynomials</td>
 		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="ipoly" checked>Integral of polynomials</td>
 		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
 		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
+		<tr><th colspan="2">Undergraduate math</th></tr>
+		<td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -436,6 +439,97 @@ function symbolicIntegral(vec){
 		return [sign, f, pow, fun, f2, pow2, true];
 }
 
+/// ------------- Partial Derivative class --------------------------
+function PartialDerivative(){
+	// Randomly select derivative variables
+	this.d = {x:0, y:0, z:0};
+	this.d["xyz"[Math.floor(Math.random() * 3)]] = 1;
+	this.vec = {
+		f: 1,
+		x: 0,
+		y: 0,
+		z: 0,
+		C: 0,
+	};
+}
+
+PartialDerivative.prototype.solution = function(){
+	return formatPFormula(symbolicPDerivative(this.vec, this.d));
+}
+
+PartialDerivative.prototype.formatProblem = function(){
+	// Format differenciating variables
+	var dstr = "\\frac{\\partial}{";
+	for(var i in "xyz"){
+		var v = "xyz"[i];
+		if(!this.d[v])
+			;
+		else if(this.d[v] === 1)
+			dstr += "\\partial " + v;
+		else
+			dstr += "\\partial " + v + "^{" + this.d[v] + "}";
+	}
+	dstr += "}";
+	return dstr + "\\left\\{" + formatPFormula(this.vec) + " \\right\\}";
+}
+
+function generatePPoly(integral){
+	var sign = (Math.floor(Math.random() * 2)) * 2 - 1;
+	var ret = {
+		f: sign * Math.floor(Math.random() * 10),
+		C: 0,
+	};
+	for(var i in "xyz"){
+		var v = "xyz"[i];
+		ret[v] = Math.floor(Math.random() * 10) - 5;
+		if(integral && ret[v] !== 0)
+			ret.f *= ret[v]+1;
+	}
+	return ret;
+}
+
+function PDPoly(){
+	PartialDerivative.call(this);
+	this.vec = generatePPoly(false);
+}
+inherit(PDPoly, PartialDerivative);
+
+function formatPFormula(vec){
+	if(vec.f === 0)
+		return vec.C ? "C" : "0";
+
+	var primary = "";
+	for(var i in "xyz"){
+		var v = "xyz"[i];
+		if(!vec[v])
+			continue;
+		primary += vec[v] === 0 ? "" : vec[v] === 1 ? v : v + "^{" + vec[v] + "}";
+	}
+	var factor = primary === "" ? vec.f : vec.f === 1 ? "" : vec.f;
+	var ret = factor + primary;
+	if(vec.C)
+		ret += "+C";
+	return ret;
+}
+
+function symbolicPDerivative(vec, d){
+	var ret = {f: vec.f, x: vec.x, y: vec.y, z: vec.z, C: vec.C};
+	for(var i in "xyz"){
+		var v = "xyz"[i];
+		if(d[v]){
+			for(var j = d[v]; 0 < j; j--){
+				if(ret[v] === 0){
+					ret.f = ret.x = ret.y = ret.z = 0;
+					return ret;
+				}
+				ret.f *= ret[v]--;
+			}
+		}
+	}
+	return ret;
+}
+
+// ------------- Main program ------------------
 function start(){
 	probClasses = [];
 	if(document.getElementById("dpoly").checked)
@@ -457,6 +551,9 @@ function start(){
 	}
 	if(document.getElementById("compdiv").checked){
 		probClasses.push([0.5, ComplexDivision]);
+	}
+	if(document.getElementById("pdpoly").checked){
+		probClasses.push([1, PDPoly]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
