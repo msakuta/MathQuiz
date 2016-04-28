@@ -65,7 +65,8 @@
 		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
 		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
 		<tr><th colspan="2">Undergraduate math</th></tr>
-		<td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td></tr>
+		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
+		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -240,15 +241,19 @@ function gcd3(a, b, c){
 
 /// ------------- Derivative class --------------------------
 function Derivative(){
-
+	this.d = 1;
 }
 
 Derivative.prototype.solution = function(){
-	return formatFormula(symbolicDerivative(this.vec));
+	var ret = this.vec;
+	for(var i = 0; i < this.d; i++)
+		ret = symbolicDerivative(ret, this.d);
+	return formatFormula(ret);
 }
 
 Derivative.prototype.formatProblem = function(){
-	return "\\frac{d}{dx} "
+	var order = this.d === 1 ? "" : "^{" + this.d + "}";
+	return "\\frac{d" + order + "}{dx" + order + "} "
 		+ "\\left\\{" + formatFormula(this.vec) + " \\right\\}";
 }
 
@@ -309,6 +314,12 @@ function DPoly(){
 	this.vec = generatePoly(false);
 }
 inherit(DPoly, Derivative);
+
+function HDPoly(){
+	DPoly.call(this);
+	this.d = (Math.floor(Math.random() * 2)) + 2;
+}
+inherit(HDPoly, DPoly);
 
 function IPoly(){
 	Integral.call(this);
@@ -459,7 +470,8 @@ PartialDerivative.prototype.solution = function(){
 
 PartialDerivative.prototype.formatProblem = function(){
 	// Format differenciating variables
-	var dstr = "\\frac{\\partial}{";
+	var dstr = "{";
+	var order = 0;
 	for(var i in "xyz"){
 		var v = "xyz"[i];
 		if(!this.d[v])
@@ -468,9 +480,10 @@ PartialDerivative.prototype.formatProblem = function(){
 			dstr += "\\partial " + v;
 		else
 			dstr += "\\partial " + v + "^{" + this.d[v] + "}";
+		order += this.d[v];
 	}
 	dstr += "}";
-	return dstr + "\\left\\{" + formatPFormula(this.vec) + " \\right\\}";
+	return "\\frac{\\partial" + (order === 1 ? "" : "^{" + order + "}") + "}" + dstr + "\\left\\{" + formatPFormula(this.vec) + " \\right\\}";
 }
 
 function generatePPoly(integral){
@@ -493,6 +506,12 @@ function PDPoly(){
 	this.vec = generatePPoly(false);
 }
 inherit(PDPoly, PartialDerivative);
+
+function PHDPoly(){
+	PDPoly.call(this);
+	this.d["xyz"[Math.floor(Math.random() * 3)]]++;
+}
+inherit(PHDPoly, PDPoly);
 
 function formatPFormula(vec){
 	if(vec.f === 0)
@@ -554,6 +573,11 @@ function start(){
 	}
 	if(document.getElementById("pdpoly").checked){
 		probClasses.push([1, PDPoly]);
+	}
+	if(document.getElementById("phdpoly").checked){
+		probClasses.push([1, HDPoly]);
+		if(document.getElementById("pdpoly").checked)
+			probClasses.push([1, PHDPoly]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
