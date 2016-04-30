@@ -67,6 +67,7 @@
 		<tr><th colspan="2">Undergraduate math</th></tr>
 		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
 		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
+		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -548,6 +549,49 @@ function symbolicPDerivative(vec, d){
 	return ret;
 }
 
+/// ------------- Taylor series expansion class --------------------------
+function TaylorSeries(){
+	// Randomly select derivative variables
+	// It's embarassing that there are too few options for problems
+	var candidates = [
+		"\\frac{1}{1-x}",
+		"\\sin",
+		"\\cos",
+		"\\exp",
+		"\\sinh",
+		"\\cosh",
+		"\\log(1-x)",
+	]
+	this.src = candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+TaylorSeries.prototype.solution = function(){
+	switch(this.src){
+		case "\\frac{1}{1-x}":
+			return "1+x+x^2+x^3+\\cdots";
+		case "\\sin":
+			return "x-\\frac 16 x^3 + \\frac 1{120}x^5+\\cdots";
+		case "\\cos":
+			return "1-\\frac 12 x^2 + \\frac 1{24} x^4 - \\frac 1{720}x^6+\\cdots";
+		case "\\exp":
+			return "1 + x + \\frac 12 x^2 + \\frac 16 x^3 + \\cdots";
+		case "\\sinh":
+			return "x+\\frac 16 x^3 + \\frac 1{120}x^5+\\cdots";
+		case "\\cosh":
+			return "1+\\frac 12 x^2 + \\frac 1{24} x^4 + \\frac 1{720}x^6+\\cdots";
+		case "\\log(1-x)":
+			return "- x - \\frac 12 x^2 - \\frac 13 x^3 - \\cdots";
+		default: return "0";
+	}
+}
+
+TaylorSeries.prototype.formatProblem = function(){
+	if(this.src === "\\frac{1}{1-x}" || this.src === "\\log(1-x)")
+		return this.src;
+	else
+		return this.src + "(x)";
+}
+
 // ------------- Main program ------------------
 function start(){
 	probClasses = [];
@@ -578,6 +622,9 @@ function start(){
 		probClasses.push([1, HDPoly]);
 		if(document.getElementById("pdpoly").checked)
 			probClasses.push([1, PHDPoly]);
+	}
+	if(document.getElementById("taylor").checked){
+		probClasses.push([1, TaylorSeries]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
