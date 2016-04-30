@@ -57,14 +57,14 @@
 		<h1>MathQuiz</h1>
 		Select classes of problems below and press "Start Over".
 		<table style="text-align: left;  border: 2px solid #afafaf">
-		<tr><th colspan="2">High school math</th></tr>
+		<tr><th colspan="2"><input type="checkbox" id="highschool" onclick="onHighSchool(this.checked)" checked>High school math</th></tr>
 		<tr><td><input type="checkbox" id="dpoly" checked>Derivative of polynomials</td>
 		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="ipoly" checked>Integral of polynomials</td>
 		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
 		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
-		<tr><th colspan="2">Undergraduate math</th></tr>
+		<tr><th colspan="2"><input type="checkbox" id="highschool" onclick="onUndergrad(this.checked)" checked>Undergraduate math</th></tr>
 		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
 		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
 		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td>
@@ -809,6 +809,22 @@ function answer(){
 	results[currentProblem] |= !radio.checked;
 	var scoreboard = document.getElementById("scoreboard");
 	scoreboard.firstChild.children[currentProblem].style.backgroundColor = !results[currentProblem] ? "#00ff00" : "#ff0000";
+}
+
+function onHighSchool(check){
+	document.getElementById("dpoly").checked = check;
+	document.getElementById("delem").checked = check;
+	document.getElementById("ipoly").checked = check;
+	document.getElementById("ielem").checked = check;
+	document.getElementById("comp").checked = check;
+	document.getElementById("compdiv").checked = check;
+}
+
+function onUndergrad(check){
+	document.getElementById("pdpoly").checked = check;
+	document.getElementById("phdpoly").checked = check;
+	document.getElementById("taylor").checked = check;
+	document.getElementById("euler").checked = check;
 }
 
 window.onload = start;
