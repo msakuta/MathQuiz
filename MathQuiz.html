@@ -809,6 +809,11 @@ function answer(){
 	results[currentProblem] |= !radio.checked;
 	var scoreboard = document.getElementById("scoreboard");
 	scoreboard.firstChild.children[currentProblem].style.backgroundColor = !results[currentProblem] ? "#00ff00" : "#ff0000";
+
+	// Using 'href' property messes up browser history, so we forcefully scroll to the bottom instead.
+//	location.href = "#";
+//	location.href = "#problem";
+	window.scrollTo(0,document.body.scrollHeight);
 }
 
 function onHighSchool(check){
