@@ -67,7 +67,8 @@
 		<tr><th colspan="2">Undergraduate math</th></tr>
 		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
 		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
-		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td></tr>
+		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td>
+		<td><input type="checkbox" id="euler" checked>Euler's formula</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -592,6 +593,60 @@ TaylorSeries.prototype.formatProblem = function(){
 		return this.src + "(x)";
 }
 
+
+/// ------------- Euler's formula class --------------------------
+function EulerFormula(){
+	// Randomly select derivative variables
+	// It's embarassing that there are too few options for problems
+	var candidates = [
+		"e^{i\\theta}",
+		"\\sin(\\theta)",
+		"\\cos(\\theta)",
+		"\\sinh(\\theta)",
+		"\\cosh(\\theta)",
+
+		// Inverse problems
+		"\\cos(\\theta) + i\\sin(\\theta)",
+		"\\frac{e^{i\\theta} - e^{-i\\theta}}{2}",
+		"\\frac{e^{i\\theta} + e^{-i\\theta}}{2}",
+		"\\frac{e^{\\theta} - e^{-\\theta}}{2}",
+		"\\frac{e^{\\theta} + e^{-\\theta}}{2}",
+	]
+	this.src = candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+EulerFormula.prototype.solution = function(){
+	switch(this.src){
+		case "e^{i\\theta}":
+			return "\\cos(\\theta) + i\\sin(\\theta)";
+		case "\\sin(\\theta)":
+			return "\\frac{e^{i\\theta} - e^{-i\\theta}}{2}";
+		case "\\cos(\\theta)":
+			return "\\frac{e^{i\\theta} + e^{-i\\theta}}{2}";
+		case "\\sinh(\\theta)":
+			return "\\frac{e^{\\theta} - e^{-\\theta}}{2}";
+		case "\\cosh(\\theta)":
+			return "\\frac{e^{\\theta} + e^{-\\theta}}{2}";
+
+		// Inverse problems
+		case "\\cos(\\theta) + i\\sin(\\theta)":
+			return "e^{i\\theta}";
+		case "\\frac{e^{i\\theta} - e^{-i\\theta}}{2}":
+			return "\\sin(\\theta)";
+		case "\\frac{e^{i\\theta} + e^{-i\\theta}}{2}":
+			return "\\cos(\\theta)";
+		case "\\frac{e^{\\theta} - e^{-\\theta}}{2}":
+			return "\\sinh(\\theta)";
+		case "\\frac{e^{\\theta} + e^{-\\theta}}{2}":
+			return "\\cosh(\\theta)";
+		default: return "0";
+	}
+}
+
+EulerFormula.prototype.formatProblem = function(){
+	return this.src;
+}
+
 // ------------- Main program ------------------
 function start(){
 	probClasses = [];
@@ -625,6 +680,9 @@ function start(){
 	}
 	if(document.getElementById("taylor").checked){
 		probClasses.push([1, TaylorSeries]);
+	}
+	if(document.getElementById("euler").checked){
+		probClasses.push([1, EulerFormula]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
@@ -683,17 +741,29 @@ function next(){
 	var problem = document.getElementById("problem");
 	problem.innerHTML = "$$" + vec.formatProblem() + "$$";
 
+	var problemStr = vec.formatProblem();
 	var correctAnsStr = vec.solution();
 
 	var options = [];
 	for(var i = 0; i < optionCount; i++){
 		var str;
-		do{
+		for(var tries = 0; tries < 100; tries++){
 			var ivec = new Problem();
 			// Generate answers from the same class since they're more realistic
 			str = ivec.solution();
-			// Prevent random formulae from being "accidentally" the same as correct answer.
-		}while(correctAnsStr === str);
+			var same = false;
+			// Prevent random formulae from being "accidentally" the same as correct answer
+			// or other options.
+			for(var j = 0; j < i; j++){
+				if(options[j] === str){
+					same = true;
+					break;
+				}
+			}
+			// Try to avoid the same string as the problem, which is obvious
+			if(!same && correctAnsStr !== str && problemStr !== str)
+				break;
+		}
 		options[i] = str;
 	}
 
