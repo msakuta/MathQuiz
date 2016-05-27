@@ -71,7 +71,8 @@
 		<td><input type="checkbox" id="euler" checked>Euler's formula</td></tr>
 		<tr><th colspan="2"><input type="checkbox" id="graduate" onclick="onGrad(this.checked)">Graduate/specific field math</th></tr>
 		<tr><td><input type="checkbox" id="difform">Differential forms</td>
-		<td><input type="checkbox" id="quat">Quaternions</td></tr>
+		<td><input type="checkbox" id="quatadd">Quaternion addition and subtraction</td></tr>
+		<tr><td><input type="checkbox" id="quatmul">Quaternion multiplication</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -812,6 +813,27 @@ QuatSub.prototype.formatProblem = function(){
 	return "(" + formatQuat(this.op1) + ")-(" + formatQuat(this.op2) + ")";
 }
 
+function QuatMul(){
+	Quat.call(this);
+}
+inherit(QuatMul, Quat);
+
+QuatMul.prototype.solution = function(){
+	function mulQuat(op1, op2){
+		return {
+			w: op1.w * op2.w - op1.i * op1.i - op1.j * op2.j - op1.k * op2.k,
+			i: op1.w * op2.i + op1.i * op2.w + op1.j * op2.k - op1.k * op2.j,
+			j: op1.w * op2.j + op1.j * op2.w + op1.k * op2.i - op1.i * op2.k,
+			k: op1.w * op2.k + op1.k * op2.w + op1.i * op2.j - op1.j * op2.i
+		};
+	}
+	return formatQuat(mulQuat(this.op1, this.op2));
+}
+
+QuatMul.prototype.formatProblem = function(){
+	return "(" + formatQuat(this.op1) + ")(" + formatQuat(this.op2) + ")";
+}
+
 function quat(w, i, j, k){
 	return {
 		w: w, i: i, j: j, k: k
@@ -880,9 +902,12 @@ function start(){
 		probClasses.push([0.5, DifFormAdd]);
 		probClasses.push([0.5, DifFormMul]);
 	}
-	if(document.getElementById("quat").checked){
+	if(document.getElementById("quatadd").checked){
 		probClasses.push([0.5, QuatAdd]);
 		probClasses.push([0.5, QuatSub]);
+	}
+	if(document.getElementById("quatmul").checked){
+		probClasses.push([1, QuatMul]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
@@ -1034,7 +1059,8 @@ function onUndergrad(check){
 
 function onGrad(check){
 	document.getElementById("difform").checked = check;
-	document.getElementById("quat").checked = check;
+	document.getElementById("quatadd").checked = check;
+	document.getElementById("quatmul").checked = check;
 }
 
 window.onload = start;
