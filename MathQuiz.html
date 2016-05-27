@@ -64,11 +64,13 @@
 		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
 		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
 		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
-		<tr><th colspan="2"><input type="checkbox" id="highschool" onclick="onUndergrad(this.checked)" checked>Undergraduate math</th></tr>
+		<tr><th colspan="2"><input type="checkbox" id="undergraduate" onclick="onUndergrad(this.checked)" checked>Undergraduate math</th></tr>
 		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
 		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
 		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td>
 		<td><input type="checkbox" id="euler" checked>Euler's formula</td></tr>
+		<tr><th colspan="2"><input type="checkbox" id="graduate" onclick="onGrad(this.checked)">Graduate/specific field math</th></tr>
+		<tr><td><input type="checkbox" id="difform">Differential forms</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -647,6 +649,82 @@ EulerFormula.prototype.formatProblem = function(){
 	return this.src;
 }
 
+/// ------------- Differential forms class --------------------------
+function DifForm(){
+	var candidates = [
+		0,1,2,3,4,5,7,
+		-1,-2,-3,-4,-5,-7,
+	];
+
+	function pickCandidate(){
+		return candidates[Math.floor(Math.random() * candidates.length)];
+	}
+
+	function difForm(n, dx, dy, dz){
+		return {
+			n: n, dx: dx, dy: n === 1 || n === 2 ? dy : 0, dz: n === 1 || n === 2 ? dz : 0
+		};
+	}
+	var nform = Math.floor(Math.random() * 4);
+	this.op1 = difForm(nform,
+		pickCandidate(), pickCandidate(), pickCandidate());
+	this.op2 = difForm(nform,
+		pickCandidate(), pickCandidate(), pickCandidate());
+}
+
+DifForm.prototype.solution = function(){
+	function addForm(op1, op2){
+		var ret = {n: op1.n};
+		ret.dx = op1.dx + op2.dx;
+		ret.dy = op1.dy + op2.dy;
+		ret.dz = op1.dz + op2.dz;
+		return ret;
+	}
+	return formatForm(addForm(this.op1, this.op2));
+}
+
+DifForm.prototype.formatProblem = function(){
+	return "(" + formatForm(this.op1) + ")+(" + formatForm(this.op2) + ")";
+}
+
+function formatForm(f){
+	function appendTerm(s, f, suffix){
+		if(s !== "")
+			s += f < 0 ? "-" : "+";
+		if(f < 0 && s === "")
+			s += "-";
+		if(Math.abs(f) !== 1)
+			s += Math.abs(f);
+		return s + suffix;
+	}
+	var ret = "";
+	if(f.n === 0)
+		return f.dx;
+	else if(f.n === 1){
+		if(f.dx !== 0)
+			ret = appendTerm(ret, f.dx, "dx");
+		if(f.dy !== 0)
+			ret = appendTerm(ret, f.dy, "dy");
+		if(f.dz !== 0)
+			ret = appendTerm(ret, f.dz, "dz");
+	}
+	else if(f.n === 2){
+		if(f.dx !== 0)
+			ret = appendTerm(ret, f.dx, "dydz");
+		if(f.dy !== 0)
+			ret = appendTerm(ret, f.dy, "dzdx");
+		if(f.dz !== 0)
+			ret = appendTerm(ret, f.dz, "dxdy");
+	}
+	else if(f.n === 3){
+		return f.dx !== 0 ? f.dx + "dxdydz" : "0";
+	}
+	else // Form 4+ is always zero.
+		return "0";
+	return ret;
+}
+
+
 // ------------- Main program ------------------
 function start(){
 	probClasses = [];
@@ -683,6 +761,9 @@ function start(){
 	}
 	if(document.getElementById("euler").checked){
 		probClasses.push([1, EulerFormula]);
+	}
+	if(document.getElementById("difform").checked){
+		probClasses.push([1, DifForm]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
@@ -830,6 +911,10 @@ function onUndergrad(check){
 	document.getElementById("phdpoly").checked = check;
 	document.getElementById("taylor").checked = check;
 	document.getElementById("euler").checked = check;
+}
+
+function onGrad(check){
+	document.getElementById("difform").checked = check;
 }
 
 window.onload = start;
