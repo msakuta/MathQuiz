@@ -651,20 +651,6 @@ EulerFormula.prototype.formatProblem = function(){
 
 /// ------------- Differential forms class --------------------------
 function DifForm(){
-	var candidates = [
-		0,1,2,3,4,5,7,
-		-1,-2,-3,-4,-5,-7,
-	];
-
-	function pickCandidate(){
-		return candidates[Math.floor(Math.random() * candidates.length)];
-	}
-
-	function difForm(n, dx, dy, dz){
-		return {
-			n: n, dx: dx, dy: n === 1 || n === 2 ? dy : 0, dz: n === 1 || n === 2 ? dz : 0
-		};
-	}
 	var nform = Math.floor(Math.random() * 4);
 	this.op1 = difForm(nform,
 		pickCandidate(), pickCandidate(), pickCandidate());
@@ -672,7 +658,12 @@ function DifForm(){
 		pickCandidate(), pickCandidate(), pickCandidate());
 }
 
-DifForm.prototype.solution = function(){
+function DifFormAdd(){
+	DifForm.call(this);
+}
+inherit(DifFormAdd, DifForm);
+
+DifFormAdd.prototype.solution = function(){
 	function addForm(op1, op2){
 		var ret = {n: op1.n};
 		ret.dx = op1.dx + op2.dx;
@@ -683,8 +674,64 @@ DifForm.prototype.solution = function(){
 	return formatForm(addForm(this.op1, this.op2));
 }
 
-DifForm.prototype.formatProblem = function(){
+DifFormAdd.prototype.formatProblem = function(){
 	return "(" + formatForm(this.op1) + ")+(" + formatForm(this.op2) + ")";
+}
+
+function DifFormMul(){
+	DifForm.call(this);
+	this.op1 = difForm(Math.floor(Math.random() * 4),
+		pickCandidate(), pickCandidate(), pickCandidate());
+	this.op2 = difForm(Math.floor(Math.random() * 4),
+		pickCandidate(), pickCandidate(), pickCandidate());
+}
+inherit(DifFormMul, DifForm);
+
+DifFormMul.prototype.solution = function(){
+	function mulForm(op1, op2){
+		var ret = {n: op1.n + op2.n};
+		if(op1.n === 0){
+			ret.dx = op1.dx * op2.dx;
+			ret.dy = op1.dx * op2.dy;
+			ret.dz = op1.dx * op2.dz;
+		}
+		else if(op2.n === 0){
+			ret.dx = op1.dx * op2.dx;
+			ret.dy = op1.dy * op2.dx;
+			ret.dz = op1.dz * op2.dx;
+		}
+		else if(op1.n === 1 && op2.n === 1){
+			ret.dx = op1.dy * op2.dz + op1.dz * op2.dy;
+			ret.dy = op1.dz * op2.dx + op1.dx * op2.dz;
+			ret.dz = op1.dx * op2.dy + op1.dy * op2.dx;
+		}
+		else if(op1.n + op2.n === 3){
+			ret.dx = op1.dx * op2.dx + op1.dy * op2.dy + op1.dz * op2.dz;
+		}
+		else
+			ret.dx = 0;
+		return ret;
+	}
+	return formatForm(mulForm(this.op1, this.op2));
+}
+
+DifFormMul.prototype.formatProblem = function(){
+	return "(" + formatForm(this.op1) + ")(" + formatForm(this.op2) + ")";
+}
+
+function pickCandidate(){
+	var candidates = [
+		0,1,2,3,4,5,7,
+		-1,-2,-3,-4,-5,-7,
+	];
+
+	return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+function difForm(n, dx, dy, dz){
+	return {
+		n: n, dx: dx, dy: n === 1 || n === 2 ? dy : 0, dz: n === 1 || n === 2 ? dz : 0
+	};
 }
 
 function formatForm(f){
@@ -763,7 +810,8 @@ function start(){
 		probClasses.push([1, EulerFormula]);
 	}
 	if(document.getElementById("difform").checked){
-		probClasses.push([1, DifForm]);
+		probClasses.push([0.5, DifFormAdd]);
+		probClasses.push([0.5, DifFormMul]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
