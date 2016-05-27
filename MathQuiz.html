@@ -70,7 +70,8 @@
 		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td>
 		<td><input type="checkbox" id="euler" checked>Euler's formula</td></tr>
 		<tr><th colspan="2"><input type="checkbox" id="graduate" onclick="onGrad(this.checked)">Graduate/specific field math</th></tr>
-		<tr><td><input type="checkbox" id="difform">Differential forms</td></tr>
+		<tr><td><input type="checkbox" id="difform">Differential forms</td>
+		<td><input type="checkbox" id="quat">Quaternions</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -772,6 +773,56 @@ function formatForm(f){
 }
 
 
+/// ------------- Quaternions class --------------------------
+function Quat(){
+	var q;
+	this.op1 = quat(pickCandidate(), pickCandidate(), pickCandidate(), pickCandidate());
+	this.op2 = quat(pickCandidate(), pickCandidate(), pickCandidate(), pickCandidate());
+}
+
+function QuatAdd(){
+	Quat.call(this);
+}
+inherit(QuatAdd, Quat);
+
+QuatAdd.prototype.solution = function(){
+	function addQuat(op1, op2){
+		return {w: op1.w + op2.w, i: op1.i + op2.i, j: op1.j + op2.j, k: op1.k + op2.k};
+	}
+	return formatQuat(addQuat(this.op1, this.op2));
+}
+
+QuatAdd.prototype.formatProblem = function(){
+	return "(" + formatQuat(this.op1) + ")+(" + formatQuat(this.op2) + ")";
+}
+
+function quat(w, i, j, k){
+	return {
+		w: w, i: i, j: j, k: k
+	};
+}
+
+function formatQuat(q){
+	function appendTerm(s, f, suffix){
+		if(f === 0)
+			return s;
+		if(s !== "")
+			s += f < 0 ? "-" : "+";
+		if(f < 0 && s === "")
+			s += "-";
+		if(suffix === "" || Math.abs(f) !== 1)
+			s += Math.abs(f);
+		return s + suffix;
+	}
+	var ret = "";
+	ret = appendTerm(ret, q.w, "");
+	ret = appendTerm(ret, q.i, "i");
+	ret = appendTerm(ret, q.j, "j");
+	ret = appendTerm(ret, q.k, "k");
+	return ret;
+}
+
+
 // ------------- Main program ------------------
 function start(){
 	probClasses = [];
@@ -812,6 +863,9 @@ function start(){
 	if(document.getElementById("difform").checked){
 		probClasses.push([0.5, DifFormAdd]);
 		probClasses.push([0.5, DifFormMul]);
+	}
+	if(document.getElementById("quat").checked){
+		probClasses.push([1, QuatAdd]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
@@ -963,6 +1017,7 @@ function onUndergrad(check){
 
 function onGrad(check){
 	document.getElementById("difform").checked = check;
+	document.getElementById("quat").checked = check;
 }
 
 window.onload = start;
