@@ -796,6 +796,22 @@ QuatAdd.prototype.formatProblem = function(){
 	return "(" + formatQuat(this.op1) + ")+(" + formatQuat(this.op2) + ")";
 }
 
+function QuatSub(){
+	Quat.call(this);
+}
+inherit(QuatSub, Quat);
+
+QuatSub.prototype.solution = function(){
+	function subQuat(op1, op2){
+		return {w: op1.w - op2.w, i: op1.i - op2.i, j: op1.j - op2.j, k: op1.k - op2.k};
+	}
+	return formatQuat(subQuat(this.op1, this.op2));
+}
+
+QuatSub.prototype.formatProblem = function(){
+	return "(" + formatQuat(this.op1) + ")-(" + formatQuat(this.op2) + ")";
+}
+
 function quat(w, i, j, k){
 	return {
 		w: w, i: i, j: j, k: k
@@ -865,7 +881,8 @@ function start(){
 		probClasses.push([0.5, DifFormMul]);
 	}
 	if(document.getElementById("quat").checked){
-		probClasses.push([1, QuatAdd]);
+		probClasses.push([0.5, QuatAdd]);
+		probClasses.push([0.5, QuatSub]);
 	}
 	if(probClasses.length === 0){
 		alert("Please check at least one of problem classes");
