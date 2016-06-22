@@ -71,8 +71,9 @@
 		<td><input type="checkbox" id="euler" checked>Euler's formula</td></tr>
 		<tr><th colspan="2"><input type="checkbox" id="graduate" onclick="onGrad(this.checked)">Graduate/specific field math</th></tr>
 		<tr><td><input type="checkbox" id="difform">Differential forms</td>
-		<td><input type="checkbox" id="quatadd">Quaternion addition and subtraction</td></tr>
-		<tr><td><input type="checkbox" id="quatmul">Quaternion multiplication</td></tr>
+		<td><input type="checkbox" id="extdif" checked>Exterior differentiation</td></tr>
+		<tr><td><input type="checkbox" id="quatadd">Quaternion addition and subtraction</td>
+		<td><input type="checkbox" id="quatmul">Quaternion multiplication</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -730,9 +731,87 @@ function pickCandidate(){
 	return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
+function pickCandidateXYZ(){
+	var powerCandidates = [
+		0,1,2,3,
+		-1,-2,
+	];
+	return {
+		f: pickCandidate(),
+		x: powerCandidates[Math.floor(Math.random() * powerCandidates.length)],
+		y: powerCandidates[Math.floor(Math.random() * powerCandidates.length)],
+		z: powerCandidates[Math.floor(Math.random() * powerCandidates.length)]
+	};
+}
+
 function difForm(n, dx, dy, dz){
 	return {
 		n: n, dx: dx, dy: n === 1 || n === 2 ? dy : 0, dz: n === 1 || n === 2 ? dz : 0
+	};
+}
+
+// Exterior differentiation problems
+function DifFormExtDif(){
+	DifForm.call(this);
+	this.op = difFormXYZ(Math.floor(Math.random() * 4),
+		generatePPoly(), generatePPoly(), generatePPoly());
+}
+inherit(DifFormExtDif, DifForm);
+
+DifFormExtDif.prototype.solution = function(){
+	function extDifForm(op){
+		var ret = {n: op.n + 1};
+		if(op.n === 0 || true){
+			ret.dx = symbolicPDerivative(op.dx, {x: 1});
+			ret.dy = symbolicPDerivative(op.dx, {y: 1});
+			ret.dz = symbolicPDerivative(op.dx, {z: 1});
+		}
+		else if(op2.n === 0){
+			ret.dx = op1.dx * op2.dx;
+			ret.dy = op1.dy * op2.dx;
+			ret.dz = op1.dz * op2.dx;
+		}
+		else if(op1.n === 1 && op2.n === 1){
+			ret.dx = op1.dy * op2.dz + op1.dz * op2.dy;
+			ret.dy = op1.dz * op2.dx + op1.dx * op2.dz;
+			ret.dz = op1.dx * op2.dy + op1.dy * op2.dx;
+		}
+		else if(op1.n + op2.n === 3){
+			ret.dx = op1.dx * op2.dx + op1.dy * op2.dy + op1.dz * op2.dz;
+		}
+		else
+			ret.dx = 0;
+		return ret;
+	}
+	return formatFormXYZ(extDifForm(this.op));
+}
+
+DifFormExtDif.prototype.formatProblem = function(){
+	return "d\\left\\{" + formatFormXYZ(this.op) + "\\right\\}";
+}
+
+function pickCandidate(){
+	var candidates = [
+		0,1,2,3,4,5,7,
+		-1,-2,-3,-4,-5,-7,
+	];
+
+	return candidates[Math.floor(Math.random() * candidates.length)];
+}
+
+function difForm(n, dx, dy, dz){
+	return {
+		n: n, dx: dx, dy: n === 1 || n === 2 ? dy : 0, dz: n === 1 || n === 2 ? dz : 0
+	};
+}
+
+function difFormXYZ(n, dx, dy, dz){
+	if(n !== 1 && n !== 2){
+		dy.f = 0;
+		dz.f = 0;
+	}
+	return {
+		n: n, dx: dx, dy: dy, dz: dz
 	};
 }
 
@@ -767,6 +846,46 @@ function formatForm(f){
 	}
 	else if(f.n === 3){
 		return f.dx !== 0 ? f.dx + "dxdydz" : "0";
+	}
+	else // Form 4+ is always zero.
+		return "0";
+	return ret;
+}
+
+function formatFormXYZ(form){
+	function formatTerm(vec){
+		return formatPFormula({f: Math.abs(vec.f), x: vec.x, y: vec.y, z: vec.z});
+	}
+	function appendTerm(s, vec, suffix){
+		if(s !== "")
+			s += vec.f < 0 ? "-" : "+";
+		if(vec.f < 0 && s === "")
+			s += "-";
+		if(Math.abs(vec.f) !== 1)
+			s += formatTerm(vec);
+		return s + suffix;
+	}
+	var ret = "";
+	if(form.n === 0)
+		return formatTerm(form.dx);
+	else if(form.n === 1){
+		if(form.dx.f !== 0)
+			ret = appendTerm(ret, form.dx, "dx");
+		if(form.dy.f !== 0)
+			ret = appendTerm(ret, form.dy, "dy");
+		if(form.dy.f !== 0)
+			ret = appendTerm(ret, form.dz, "dz");
+	}
+	else if(form.n === 2){
+		if(form.dx.f !== 0)
+			ret = appendTerm(ret, form.dx, "dydz");
+		if(form.dy.f !== 0)
+			ret = appendTerm(ret, form.dy, "dzdx");
+		if(form.dy.f !== 0)
+			ret = appendTerm(ret, form.dz, "dxdy");
+	}
+	else if(form.n === 3){
+		return form.dx.f !== 0 ? formatTerm(form.dx) + "dxdydz" : "0";
 	}
 	else // Form 4+ is always zero.
 		return "0";
@@ -901,6 +1020,9 @@ function start(){
 	if(document.getElementById("difform").checked){
 		probClasses.push([0.5, DifFormAdd]);
 		probClasses.push([0.5, DifFormMul]);
+	}
+	if(document.getElementById("extdif").checked){
+		probClasses.push([1, DifFormExtDif]);
 	}
 	if(document.getElementById("quatadd").checked){
 		probClasses.push([0.5, QuatAdd]);
