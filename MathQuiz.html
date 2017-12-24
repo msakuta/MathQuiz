@@ -22,6 +22,10 @@
 				font-size: 25px;
 			}
 
+			#problem{
+				margin: 10px;
+			}
+
 			.nobr{white-space: nowrap}
 
 			table{
@@ -36,7 +40,7 @@
 			th{background-color: #e0c0a0}
 			td, th{padding: 2px; border: 2px solid #7f7f7f}
 		</style>
-		<script type="text/x-mathjax-config">
+		<!--script type="text/x-mathjax-config">
 		MathJax.Hub.Config({
 		  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
 		  TeX: {
@@ -48,10 +52,12 @@
 			}
 		  }
 		});
-		</script>
-		<script type="text/javascript"
+		</script-->
+		<!--script type="text/javascript"
 		 src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-		</script>
+		</script-->
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.css" integrity="sha384-exe4Ak6B0EoJI0ogGxjJ8rn+RN3ftPnEQrGwX59KTCl5ybGzvHGKjhPKk/KC3abb" crossorigin="anonymous">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.js" integrity="sha384-OMvkZ24ANLwviZR2lVq8ujbE/bUO8IR1FdBrKLQBI14Gq5Xp/lksIccGkmKL8m+h" crossorigin="anonymous"></script>
 	</head>
 	<body>
 		<h1>MathQuiz</h1>
@@ -96,7 +102,8 @@
 		<div id="highScores"></div>
 		<hr>
 		<div>Source on <a href="https://github.com/msakuta/MathQuiz">GitHub</a>.</div>
-		<div>Powered by <a href="https://www.mathjax.org/">MathJax</a>.</div>
+		<!--div>Powered by <a href="https://www.mathjax.org/">MathJax</a>.</div-->
+		<div>Powered by <a href="https://khan.github.io/KaTeX/">KaTex</a>.</div>
 
 		<script>
 
@@ -964,7 +971,8 @@ function next(){
 	var vec = new Problem();
 
 	var problem = document.getElementById("problem");
-	problem.innerHTML = "$$" + vec.formatProblem() + "$$";
+	//problem.innerHTML = "$$" + vec.formatProblem() + "$$";
+	katex.render("\\displaystyle " + vec.formatProblem(), problem);
 
 	var problemStr = vec.formatProblem();
 	var correctAnsStr = vec.solution();
@@ -997,7 +1005,8 @@ function next(){
 
 	for(var i = 0; i < optionCount; i++){
 		var elem = document.getElementById("ans" + (i + 1));
-		elem.innerHTML = "$ \\displaystyle " + options[i] + "$";
+		//elem.innerHTML = "$ \\displaystyle " + options[i] + "$";
+		katex.render("\\displaystyle " + options[i], elem);
 		var radio = document.getElementById(i + 1);
 		radio.checked = false;
 	}
