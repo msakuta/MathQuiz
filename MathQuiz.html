@@ -71,7 +71,7 @@
 		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
 		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
 		<tr><td><input type="checkbox" id="matvec" checked>Matrix and Vector product</td>
-			<td></td></tr>
+		<td><input type="checkbox" id="matmat" checked>Matrix and Matrix product</td></tr>
 		<tr><th colspan="2"><input type="checkbox" id="undergraduate" onclick="onUndergrad(this.checked)" checked>Undergraduate math</th></tr>
 		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
 		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
@@ -274,6 +274,32 @@ MatrixVectorProduct.prototype.formatProblem = function(){
 		+ " \\\\ " + this.a[2] + " & " + this.a[3] + "\\end{pmatrix}"
 		+ " \\begin{pmatrix}" + this.b[0] + " \\\\ " + this.b[1] + "\\end{pmatrix}";
 }
+
+/// ------------- Matrix and Matrix Products --------------------------
+function MatrixMatrixProduct(){
+	// Prevent zero division
+	this.a = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
+	Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+	this.b = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
+	Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+}
+
+MatrixMatrixProduct.prototype.solution = function(){
+	var result = [this.a[0] * this.b[0] + this.a[1] * this.b[2],
+		this.a[0] * this.b[1] + this.a[1] * this.b[3],
+		this.a[2] * this.b[0] + this.a[3] * this.b[2],
+		this.a[2] * this.b[1] + this.a[3] * this.b[3]];
+	return "\\begin{pmatrix} " + result[0] + " & " + result[1] + " \\\\ "
+		 + result[2] + " & " + result[3] + "\\end{pmatrix}";
+}
+
+MatrixMatrixProduct.prototype.formatProblem = function(){
+	return "\\begin{pmatrix}" + this.a[0] + " & " + this.a[1]
+		+ " \\\\ " + this.a[2] + " & " + this.a[3] + "\\end{pmatrix}"
+		+ " \\begin{pmatrix}" + this.b[0] + " & " + this.b[1]
+		+ " \\\\ " + this.b[2] + " & " + this.b[3] + "\\end{pmatrix}";
+}
+
 
 /// ------------- Derivative class --------------------------
 function Derivative(){
@@ -917,6 +943,9 @@ function start(){
 	if(document.getElementById("matvec").checked){
 		probClasses.push([0.5, MatrixVectorProduct]);
 	}
+	if(document.getElementById("matmat").checked){
+		probClasses.push([0.5, MatrixMatrixProduct]);
+	}
 	if(document.getElementById("pdpoly").checked){
 		probClasses.push([1, PDPoly]);
 	}
@@ -1084,6 +1113,7 @@ function onHighSchool(check){
 	document.getElementById("comp").checked = check;
 	document.getElementById("compdiv").checked = check;
 	document.getElementById("matvec").checked = check;
+	document.getElementById("matmat").checked = check;
 }
 
 function onUndergrad(check){
