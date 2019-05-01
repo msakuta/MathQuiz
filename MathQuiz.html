@@ -72,6 +72,8 @@
 		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
 		<tr><td><input type="checkbox" id="matvec" checked>Matrix and Vector product</td>
 		<td><input type="checkbox" id="matmat" checked>Matrix and Matrix product</td></tr>
+		<tr><td><input type="checkbox" id="matdet" checked>Matrix Determinant</td>
+		<td><input type="checkbox" id="matinv" checked>Matrix Inversion</td></tr>
 		<tr><th colspan="2"><input type="checkbox" id="undergraduate" onclick="onUndergrad(this.checked)" checked>Undergraduate math</th></tr>
 		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
 		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
@@ -257,7 +259,6 @@ function gcd3(a, b, c){
 
 /// ------------- Matrix and Vector Products --------------------------
 function MatrixVectorProduct(){
-	// Prevent zero division
 	this.a = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
 	Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
 	this.b = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
@@ -277,7 +278,6 @@ MatrixVectorProduct.prototype.formatProblem = function(){
 
 /// ------------- Matrix and Matrix Products --------------------------
 function MatrixMatrixProduct(){
-	// Prevent zero division
 	this.a = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
 	Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
 	this.b = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
@@ -298,6 +298,54 @@ MatrixMatrixProduct.prototype.formatProblem = function(){
 		+ " \\\\ " + this.a[2] + " & " + this.a[3] + "\\end{pmatrix}"
 		+ " \\begin{pmatrix}" + this.b[0] + " & " + this.b[1]
 		+ " \\\\ " + this.b[2] + " & " + this.b[3] + "\\end{pmatrix}";
+}
+
+
+/// ------------- Matrix Determinants --------------------------
+function MatrixDeterminant(){
+	this.a = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
+	Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+}
+
+function calcDeterminant(a){
+	return a[0] * a[3] - a[1] * a[2];
+}
+
+MatrixDeterminant.prototype.solution = function(){
+	var result = calcDeterminant(this.a);
+	return result;
+}
+
+MatrixDeterminant.prototype.formatProblem = function(){
+	return "\\det\\begin{pmatrix}" + this.a[0] + " & " + this.a[1]
+		+ " \\\\ " + this.a[2] + " & " + this.a[3] + "\\end{pmatrix}";
+}
+
+
+/// ------------- Matrix Determinants --------------------------
+function MatrixInversion(){
+	// Prevent zero division
+	do{
+		this.a = [Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5,
+		Math.floor(Math.random() * 10) - 5, Math.floor(Math.random() * 10) - 5];
+		var det = calcDeterminant(this.a);
+	} while(det === 0);
+}
+
+MatrixInversion.prototype.solution = function(){
+	var det = calcDeterminant(this.a);
+	var result = [this.a[3], -this.a[1], -this.a[2], this.a[0]];
+	var detstr = "";
+	if(det !== 1){
+		detstr = det < 0 ? "-\\frac{1}{" + (-det) + "}" : "\\frac{1}{" + det + "}";
+	}
+	return detstr + "\\begin{pmatrix} " + result[0] + " & " + result[1] + " \\\\ "
+		 + result[2] + " & " + result[3] + "\\end{pmatrix}";
+}
+
+MatrixInversion.prototype.formatProblem = function(){
+	return "\\begin{pmatrix}" + this.a[0] + " & " + this.a[1]
+		+ " \\\\ " + this.a[2] + " & " + this.a[3] + "\\end{pmatrix}^{-1}";
 }
 
 
@@ -946,6 +994,12 @@ function start(){
 	if(document.getElementById("matmat").checked){
 		probClasses.push([0.5, MatrixMatrixProduct]);
 	}
+	if(document.getElementById("matdet").checked){
+		probClasses.push([0.5, MatrixDeterminant]);
+	}
+	if(document.getElementById("matinv").checked){
+		probClasses.push([0.5, MatrixInversion]);
+	}
 	if(document.getElementById("pdpoly").checked){
 		probClasses.push([1, PDPoly]);
 	}
@@ -1114,6 +1168,8 @@ function onHighSchool(check){
 	document.getElementById("compdiv").checked = check;
 	document.getElementById("matvec").checked = check;
 	document.getElementById("matmat").checked = check;
+	document.getElementById("matdet").checked = check;
+	document.getElementById("matinv").checked = check;
 }
 
 function onUndergrad(check){
