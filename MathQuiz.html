@@ -63,6 +63,12 @@
 		<h1>MathQuiz</h1>
 		Select classes of problems below and press "Start Over".
 		<table style="text-align: left;  border: 2px solid #afafaf">
+		<tr><th colspan="3">Selection by Difficulty</th></tr>
+		<tr><td><input type="checkbox" id="star1" onclick="onStar(1, this)"><img src="img/star.png"></td>
+			<td><input type="checkbox" id="star2" onclick="onStar(2, this)"><img src="img/star.png"><img src="img/star.png"></td>
+			<td><input type="checkbox" id="star3" onclick="onStar(3, this)"><img src="img/star.png"><img src="img/star.png"><img src="img/star.png"></td></tr>
+		</table>
+		<table style="text-align: left;  border: 2px solid #afafaf">
 		<tr><th colspan="2"><input type="checkbox" id="highschool" onclick="onHighSchool(this.checked)" checked>High school math</th></tr>
 		<tr><td><input type="checkbox" id="dpoly" checked>Derivative of polynomials</td>
 		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
@@ -1159,6 +1165,37 @@ function answer(){
 	window.scrollTo(0,document.body.scrollHeight);
 }
 
+var maxDifficulty = 3;
+var classes = {
+	"dpoly": 1,
+	"delem": 1,
+	"ipoly": 1,
+	"ielem": 1,
+	"comp": 1,
+	"compdiv": 2,
+	"matvec": 1,
+	"matmat": 1,
+	"matdet": 1,
+	"matinv": 1,
+	"pdpoly": 1,
+	"phdpoly": 1,
+	"taylor": 2,
+	"euler": 2,
+	"difform": 3,
+	"quatadd": 1,
+	"quatmul": 2,
+};
+
+function onStar(num, checkBox){
+	var checked = checkBox.checked;
+	for(var k in classes){
+		var elem = document.getElementById(k);
+		if(!elem || classes[k] !== num)
+			continue;
+		elem.checked = checked;
+	}
+}
+
 function onHighSchool(check){
 	document.getElementById("dpoly").checked = check;
 	document.getElementById("delem").checked = check;
@@ -1185,7 +1222,30 @@ function onGrad(check){
 	document.getElementById("quatmul").checked = check;
 }
 
-window.onload = start;
+window.onload = function(){
+
+	// Insert difficulty stars in front of problem classes
+	for(var k in classes){
+		var elem = document.getElementById(k);
+		if(!elem)
+			continue;
+		for(var i = 0; i < maxDifficulty; i++)
+		{
+			var star = document.createElement("img");
+			var index = elem.parentElement.insertBefore(star, elem.nextSibling);
+			// We're inserting in the reversed order of appearance, so i is counted from maxDifficulty.
+			star.setAttribute("src", maxDifficulty - i - 1 < classes[k] ? "img/star.png" : "img/star-disabled.png");
+			// star.style.backgroundImage = "url(star.png)";
+			// star.style.position = "relative";
+			// star.style.display = "inline-block";
+			// star.style.width = 16 * classes[k] + "px";
+			// star.style.height = "16px";
+		}
+	}
+
+
+	start();
+}
 
 		</script>
 
