@@ -1193,10 +1193,13 @@ function answer(){
 	var scoreboard = document.getElementById("scoreboard");
 	scoreboard.firstChild.children[currentProblem].style.backgroundColor = !results[currentProblem] ? "#00ff00" : "#ff0000";
 
-	// Using 'href' property messes up browser history, so we forcefully scroll to the bottom instead.
+	// Using 'href' property messes up browser history, so we use scrollIntoView().
+	// We used to scroll the window so that the problem is visible after answering,
+	// but now that we have score statistics board that is long enough, we don't need to.
 //	location.href = "#";
 //	location.href = "#problem";
-	window.scrollTo(0,document.body.scrollHeight);
+	//window.scrollTo(0,document.body.scrollHeight);
+	//scoreboard.scrollIntoView();
 
 	updateHighScores();
 	saveHighScores();
