@@ -39,6 +39,14 @@
 			td{background-color: #ffe0d0}
 			th{background-color: #e0c0a0}
 			td, th{padding: 2px; border: 2px solid #7f7f7f}
+
+			.green{
+				background-color: #0f0;
+			}
+
+			.red{
+				background-color: #f00;
+			}
 		</style>
 		<!--script type="text/x-mathjax-config">
 		MathJax.Hub.Config({
@@ -109,7 +117,9 @@
 		<div><input type="button" id="next" onclick="next()" value="Next Problem" style="display: none"></div>
 		<div id="points" style="font-size: 15pt; display:none; font-weight: bold"></div>
 		<hr>
+		<h2>Your performance:</h2>
 		<div id="highScores"></div>
+		<input type="button" value="Reset stats" onclick="resetStats()">
 		<hr>
 		<div>Source on <a href="https://github.com/msakuta/MathQuiz">GitHub</a>.</div>
 		<!--div>Powered by <a href="https://www.mathjax.org/">MathJax</a>.</div-->
@@ -1056,6 +1066,8 @@ function start(){
 	next();
 }
 
+var lastProbClass = null;
+
 function next(){
 	if(probCount <= currentProblem + 1){
 		var incorrects = 0;
@@ -1138,16 +1150,38 @@ function next(){
 		scoreboard.firstChild.children[currentProblem-1].style.border = "";
 	scoreboard.firstChild.children[currentProblem].style.border = "3px solid #0000ff";
 
+	lastProbClass = vec;
+
 	//MathJax.Hub.Typeset();
 }
 
 function answer(){
 	var radio = document.getElementById(correctAns + 1);
 	var message;
-	if(radio.checked)
+
+	var lastClass = (function(){
+		if(lastProbClass === null)
+			return null;
+		for(var k in classes){
+			thisClass = classes[k];
+			for(var j = 0; j < thisClass.probs.length; j++){
+				if(thisClass.probs[j][1] === lastProbClass.constructor)
+					return k;
+			}
+		}
+		return null;
+	})();
+
+	if(radio.checked){
 		message = "Correct";
-	else
+		if(lastClass)
+			scores[lastClass].corrects++;
+	}
+	else{
 		message = "Incorrect";
+		if(lastClass)
+			scores[lastClass].incorrects++;
+	}
 	var messageElem = document.getElementById("message");
 	messageElem.innerHTML = message;
 
@@ -1163,34 +1197,40 @@ function answer(){
 //	location.href = "#";
 //	location.href = "#problem";
 	window.scrollTo(0,document.body.scrollHeight);
+
+	updateHighScores();
+	saveHighScores();
 }
 
 var maxDifficulty = 3;
+
+// Problem classes database
 var classes = {
-	"dpoly": 1,
-	"delem": 1,
-	"ipoly": 1,
-	"ielem": 1,
-	"comp": 1,
-	"compdiv": 2,
-	"matvec": 1,
-	"matmat": 1,
-	"matdet": 1,
-	"matinv": 1,
-	"pdpoly": 1,
-	"phdpoly": 1,
-	"taylor": 2,
-	"euler": 2,
-	"difform": 3,
-	"quatadd": 1,
-	"quatmul": 2,
+	"dpoly": {"difficulty": 1, "dispName": "Derivative of Polynomials", probs: [[1, DPoly]]},
+	"delem": {"difficulty": 1, "dispName": "Derivative of Elementary functions", probs: [
+		[0.3, DTri], [0.3, DExp], [0.3, DLog]]},
+	"ipoly": {"difficulty": 1, "dispName": "Integral of Polynomials", probs: [[1, IPoly]]},
+	"ielem": {"difficulty": 1, "dispName": "Integral of Elementary functions", probs: [[0.4, ITri], [0.4, IExp]]},
+	"comp": {"difficulty": 1, "dispName": "Complex numbers", probs: [[0.5, ComplexAdd], [0.5, ComplexMultiply]]},
+	"compdiv": {"difficulty": 2, "dispName": "Complex division", probs: [[0.5, ComplexDivision]]},
+	"matvec": {"difficulty": 1, "dispName": "Matrix and Vector product", probs: [[0.5, MatrixVectorProduct]]},
+	"matmat": {"difficulty": 1, "dispName": "Matrix and Matrix product", probs: [[0.5, MatrixMatrixProduct]]},
+	"matdet": {"difficulty": 1, "dispName": "Matrix determinant", probs: [[0.5, MatrixDeterminant]]},
+	"matinv": {"difficulty": 1, "dispName": "Matrix inversion", probs: [[0.5, MatrixInversion]]},
+	"pdpoly": {"difficulty": 1, "dispName": "Partial derivative of Polynomials", probs: [[1, PDPoly]]},
+	"phdpoly": {"difficulty": 1, "dispName": "Partial higher-order derivative of Polynomials", probs: [[1, HDPoly], [1, PHDPoly]]},
+	"taylor": {"difficulty": 2, "dispName": "Taylor series", probs: [[1, TaylorSeries]]},
+	"euler": {"difficulty": 2, "dispName": "Euler equation", probs: [[1, EulerFormula]]},
+	"difform": {"difficulty": 3, "dispName": "Differential forms", probs: [[0.5, DifFormAdd], [0.5, DifFormMul]]},
+	"quatadd": {"difficulty": 1, "dispName": "Quaternion addition", probs: [[0.5, QuatAdd], [0.5, QuatSub]]},
+	"quatmul": {"difficulty": 2, "dispName": "Quaternion multiplication", probs: [[1, QuatMul]]},
 };
 
 function onStar(num, checkBox){
 	var checked = checkBox.checked;
 	for(var k in classes){
 		var elem = document.getElementById(k);
-		if(!elem || classes[k] !== num)
+		if(!elem || classes[k].difficulty !== num)
 			continue;
 		elem.checked = checked;
 	}
@@ -1222,6 +1262,93 @@ function onGrad(check){
 	document.getElementById("quatmul").checked = check;
 }
 
+var scores = undefined;
+
+function loadHighScores(){
+	var st = localStorage.getItem('MathQuiz');
+	var ok = false;
+	if(st){
+		var json = JSON.parse(st);
+		if(json && typeof json === 'object' && json.scores && typeof json.scores === 'object'){
+			scores = json.scores;
+			ok = true;
+		}
+	}
+
+	// If the data is not as expected, reset to default
+	if(!ok){
+		resetStatsInt();
+	}
+	updateHighScores();
+}
+
+function resetStatsInt(){
+	var st = {};
+	for(var k in classes){
+		var v = {corrects: 0, incorrects: 0};
+		st[k] = v;
+	}
+	scores = st;
+}
+
+function resetStats(){
+	if(confirm('Are you sure you want to reset the statistics?\nYour long accumulated stats will be lost forever!')){
+		resetStatsInt();
+		updateHighScores();
+	}
+}
+
+function updateHighScores(){
+	var highScoresElem = document.getElementById('highScores');
+	var elem;
+	while(elem = highScoresElem.children[0]){
+		highScoresElem.removeChild(elem);
+	}
+
+	var table = document.createElement('table');
+
+	// Header row
+	var el = document.createElement('tr');
+	var header = document.createElement('th');
+	header.innerHTML = 'Problem class';
+	el.appendChild(header);
+	var corrects = document.createElement('th');
+	corrects.innerHTML = 'Corrects';
+	el.appendChild(corrects);
+	var incorrects = document.createElement('th');
+	incorrects.innerHTML = 'Incorrects';
+	el.appendChild(incorrects);
+	table.appendChild(el);
+
+	// Content rows
+	for(var k in classes){
+		var el = document.createElement('tr');
+		var v = scores[k];
+		if(v === undefined)
+			continue;
+		var header = document.createElement('th');
+		header.innerHTML = (classes[k].dispName || k);
+		el.appendChild(header);
+		var corrects = document.createElement('td');
+		corrects.innerHTML = v.corrects;
+		if(v.corrects)
+			corrects.classList.add('green');
+		el.appendChild(corrects);
+		var incorrects = document.createElement('td');
+		incorrects.innerHTML = v.incorrects;
+		if(v.incorrects)
+			incorrects.classList.add('red');
+		el.appendChild(incorrects);
+		table.appendChild(el);
+	}
+
+	highScoresElem.appendChild(table);
+}
+
+function saveHighScores(){
+	localStorage.setItem('MathQuiz', JSON.stringify({scores: scores}) );
+}
+
 window.onload = function(){
 
 	// Insert difficulty stars in front of problem classes
@@ -1234,7 +1361,7 @@ window.onload = function(){
 			var star = document.createElement("img");
 			var index = elem.parentElement.insertBefore(star, elem.nextSibling);
 			// We're inserting in the reversed order of appearance, so i is counted from maxDifficulty.
-			star.setAttribute("src", maxDifficulty - i - 1 < classes[k] ? "img/star.png" : "img/star-disabled.png");
+			star.setAttribute("src", maxDifficulty - i - 1 < classes[k].difficulty ? "img/star.png" : "img/star-disabled.png");
 			// star.style.backgroundImage = "url(star.png)";
 			// star.style.position = "relative";
 			// star.style.display = "inline-block";
@@ -1243,6 +1370,7 @@ window.onload = function(){
 		}
 	}
 
+	loadHighScores();
 
 	start();
 }
