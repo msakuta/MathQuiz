@@ -114,7 +114,30 @@
 		<div>Source on <a href="https://github.com/msakuta/MathQuiz">GitHub</a>.</div>
 		<!--div>Powered by <a href="https://www.mathjax.org/">MathJax</a>.</div-->
 		<div>Powered by <a href="https://khan.github.io/KaTeX/">KaTex</a>.</div>
+		<input type="button" value="Open" onclick="doOpen()"></p>
+		<div id="file"></div>
+		<script>
+			const electron = require('electron');
+			//require('./renderer.js')
+			const { ipcRenderer } = require('electron')
+			const { fstat, readdirSync } = require('fs');
+//console.log(ipcRenderer.sendSync('synchronous-message', 'ping')) // prints "pong"
 
+function doOpen(){
+	ipcRenderer.on('asynchronous-reply', (event, arg) => {
+	console.log(arg) // prints "pong"
+	document.getElementById('file').innerHTML = arg;
+	})
+	var file = ipcRenderer.sendSync('synchronous-message', 'ping');
+	var fileElem = document.createElement('img');
+	fileElem.src = file;
+	document.getElementById('file').appendChild(fileElem);
+}
+
+window.addEventListener('load', function(){
+	//var elem = document.getElementById("file").innerHTML = readdirSync(".");
+})
+		</script>
 		<script>
 
 // Constants
@@ -125,6 +148,8 @@ var currentProblem = 0;
 var results;
 var correctAns;
 var probClasses = [];
+
+console.log(process)
 
 /// Mix fields of source into target.
 /// This can be used like a dirty multiple inheritance.
