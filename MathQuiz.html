@@ -1360,6 +1360,36 @@ function loadHighScores(){
 	})
 }
 
+var globalScores = null;
+
+function loadGlobalStats(){
+	db.collection("users").get().then((query) => {
+		var buff = [];
+		globalScores = {};
+		query.forEach((doc) => {
+			var data = doc.data();
+			for(var key in data.scores){
+				var value = data.scores[key];
+				if(key in globalScores){
+					for(var entry in value){
+						if(entry in globalScores[key])
+							globalScores[key][entry] += value[entry];
+						else
+							globalScores[key][entry] = value[entry];
+					}
+				}
+				else{
+					globalScores[key] = value;
+				}
+			}
+		});
+		updateHighScores();
+	})
+	.catch((error)=>{
+		console.log("Failed to load data");
+	});
+}
+
 function resetStatsInt(){
 	var st = {};
 	for(var k in classes){
@@ -1400,6 +1430,9 @@ function updateHighScores(){
 	var ratio = document.createElement('th');
 	ratio.innerHTML = 'Ratio';
 	el.appendChild(ratio);
+	var globalRatio = document.createElement('th');
+	globalRatio.innerHTML = 'Global Ratio';
+	el.appendChild(globalRatio);
 	table.appendChild(el);
 
 	// Content rows
@@ -1431,6 +1464,19 @@ function updateHighScores(){
 			ratio.style.backgroundColor = 'rgb(' + (255 * (1 - ratioVal)).toFixed() + ',' + (128 + 127 * ratioVal).toFixed() + ',1)';
 		}
 		el.appendChild(ratio);
+		if(globalScores && k in globalScores){
+			var gv = globalScores[k];
+			var globalRatio = document.createElement('td');
+			if(gv.incorrects + gv.corrects === 0){
+				globalRatio.innerHTML = '--';
+			}
+			else{
+				var ratioVal = gv.corrects / (gv.incorrects + gv.corrects);
+				globalRatio.innerHTML = (100 * ratioVal).toFixed(1) + '%';
+				globalRatio.style.backgroundColor = 'rgb(' + (255 * (1 - ratioVal)).toFixed() + ',' + (128 + 127 * ratioVal).toFixed() + ',1)';
+			}
+			el.appendChild(globalRatio);
+		}
 		table.appendChild(el);
 	}
 
@@ -1513,6 +1559,8 @@ window.onload = function(){
 			// star.style.height = "16px";
 		}
 	}
+
+	loadGlobalStats();
 
 	loadUserId();
 
