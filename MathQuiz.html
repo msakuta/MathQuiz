@@ -45,7 +45,7 @@
 			}
 
 			.red{
-				background-color: #f00;
+				background-color: #f70;
 			}
 		</style>
 		<!--script type="text/x-mathjax-config">
@@ -1397,6 +1397,9 @@ function updateHighScores(){
 	var incorrects = document.createElement('th');
 	incorrects.innerHTML = 'Incorrects';
 	el.appendChild(incorrects);
+	var ratio = document.createElement('th');
+	ratio.innerHTML = 'Ratio';
+	el.appendChild(ratio);
 	table.appendChild(el);
 
 	// Content rows
@@ -1418,6 +1421,16 @@ function updateHighScores(){
 		if(v.incorrects)
 			incorrects.classList.add('red');
 		el.appendChild(incorrects);
+		var ratio = document.createElement('td');
+		if(v.incorrects + v.corrects === 0){
+			ratio.innerHTML = '--';
+		}
+		else{
+			var ratioVal = v.corrects / (v.incorrects + v.corrects);
+			ratio.innerHTML = (100 * ratioVal).toFixed(1) + '%';
+			ratio.style.backgroundColor = 'rgb(' + (255 * (1 - ratioVal)).toFixed() + ',' + (128 + 127 * ratioVal).toFixed() + ',1)';
+		}
+		el.appendChild(ratio);
 		table.appendChild(el);
 	}
 
