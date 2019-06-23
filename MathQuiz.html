@@ -66,6 +66,10 @@
 		</script-->
 		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.css" integrity="sha384-exe4Ak6B0EoJI0ogGxjJ8rn+RN3ftPnEQrGwX59KTCl5ybGzvHGKjhPKk/KC3abb" crossorigin="anonymous">
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.js" integrity="sha384-OMvkZ24ANLwviZR2lVq8ujbE/bUO8IR1FdBrKLQBI14Gq5Xp/lksIccGkmKL8m+h" crossorigin="anonymous"></script>
+
+		<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase-app.js"></script>
+		<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase-firestore.js"></script>
+
 	</head>
 	<body>
 		<h1>MathQuiz</h1>
@@ -118,6 +122,11 @@
 		<div id="points" style="font-size: 15pt; display:none; font-weight: bold"></div>
 		<hr>
 		<h2>Your performance:</h2>
+		<label for="userId">User Id</label>
+		<input type="text" id="userId" size="40">
+		<input type="button" value="Reload stats" onclick="reloadHighScores()">
+		<input type="button" value="Generate User Id" onclick="generateUserId()">
+		<div>* Only the user id and statistics are saved on the server.</div>
 		<div id="highScores"></div>
 		<input type="button" value="Reset stats" onclick="resetStats()">
 		<hr>
@@ -125,9 +134,26 @@
 		<!--div>Powered by <a href="https://www.mathjax.org/">MathJax</a>.</div-->
 		<div>Powered by <a href="https://khan.github.io/KaTeX/">KaTex</a>.</div>
 
-		<script>
+<script>
+'use strict';
+
+var firebaseConfig = {
+	apiKey: "AIzaSyADyNCd36C52-hAxCocNvJnqOfBL_TbD5U",
+	authDomain: "mathquiz-38728.firebaseapp.com",
+	databaseURL: "https://mathquiz-38728.firebaseio.com",
+	projectId: "mathquiz-38728",
+	storageBucket: "",
+	messagingSenderId: "701571234785",
+	appId: "1:701571234785:web:a526b6acd52ba788"
+};
+
+firebase.initializeApp(firebaseConfig);
+
+// Initialize Cloud Firestore through Firebase
+var db = firebase.firestore();
 
 // Constants
+var userIdLength = 40; // We assume 40 bytes are long enough for collision avoidance until 16^20 ~ 1.2e24 users.
 var optionCount = 4;
 var probCount = 20;
 
@@ -1163,7 +1189,7 @@ function answer(){
 		if(lastProbClass === null)
 			return null;
 		for(var k in classes){
-			thisClass = classes[k];
+			var thisClass = classes[k];
 			for(var j = 0; j < thisClass.probs.length; j++){
 				if(thisClass.probs[j][1] === lastProbClass.constructor)
 					return k;
@@ -1267,7 +1293,7 @@ function onGrad(check){
 
 var scores = undefined;
 
-function loadHighScores(){
+function loadHighScoresFromLocalStorage(){
 	var st = localStorage.getItem('MathQuiz');
 	var ok = false;
 	if(st){
@@ -1285,6 +1311,55 @@ function loadHighScores(){
 	updateHighScores();
 }
 
+var userId = "";
+
+function saveUserIdFromUI(){
+	var elem = document.getElementById("userId")
+	// User ID must be userIdLength bytes long
+	if(elem && elem.value.length === userIdLength){
+		// Only update the internal user id variable when the input is valid.
+		userId = elem.value;
+		localStorage.setItem('MathQuizUserId', userId);
+		return true;
+	}
+	else{
+		alert("User Id must be " + userIdLength.toString() + " characters hexadecimal number.");
+		return false;
+	}
+}
+
+function reloadHighScores(){
+	if(!saveUserIdFromUI())
+		return;
+	loadHighScores();
+}
+
+function loadHighScores(){
+
+	if(userId === ""){
+		alert("Invalid user id");
+		return;
+	}
+
+	db.collection('/users')
+	.doc(userId)
+	.get()
+	.then(function(doc) {
+		if (doc.exists) {
+			//var elem = document.getElementById("title");
+			//elem.innerHTML = doc.data().hello;
+			scores = doc.data().scores;
+		} else {
+			console.log("No user");
+			resetStatsInt();
+		}
+		updateHighScores();
+	})
+	.catch(function(error) {
+		console.log("Error : ", error);
+	})
+}
+
 function resetStatsInt(){
 	var st = {};
 	for(var k in classes){
@@ -1292,6 +1367,7 @@ function resetStatsInt(){
 		st[k] = v;
 	}
 	scores = st;
+	saveHighScores();
 }
 
 function resetStats(){
@@ -1350,6 +1426,58 @@ function updateHighScores(){
 
 function saveHighScores(){
 	localStorage.setItem('MathQuiz', JSON.stringify({scores: scores}) );
+
+	if(userId === ""){
+		alert("Invalid user id");
+		return;
+	}
+
+	db.collection("/users").doc(userId).set({scores: scores})
+	.then(function() {
+		console.log("Document successfully written!");
+	})
+	.catch(function(error) {
+		console.error("Error writing document: ", error);
+	});
+}
+
+function randomizeUserId(){
+	userId = "";
+	// This is not cryptographically safe random number, but we'd settle for this
+	// because this application is not serious.
+	for(var i = 0; i < userIdLength; i++)
+		userId += Math.floor(Math.random() * 16).toString(16);
+	localStorage.setItem('MathQuizUserId', userId);
+	var elem = document.getElementById("userId");
+	if(elem)
+		elem.value = userId;
+	return userId;
+}
+
+function loadUserId(){
+	var st = localStorage.getItem('MathQuizUserId');
+	var ok = false;
+	if(st && typeof st === "string" && st.length === userIdLength){
+		ok = true;
+		userId = st;
+		var elem = document.getElementById("userId");
+		if(elem)
+			elem.value = st;
+	}
+	else{
+		// If the data is not as expected, regenerate random id
+		st = randomizeUserId();
+	}
+}
+
+function generateUserId(){
+	if(confirm('Are you sure you want to generate a new Id?\n' +
+		'Your long accumulated stats can be lost forever!\n' +
+		'(You can recall your previous stats by entering old user id)')){
+		randomizeUserId();
+		resetStatsInt();
+		updateHighScores();
+	}
 }
 
 window.onload = function(){
@@ -1372,6 +1500,8 @@ window.onload = function(){
 			// star.style.height = "16px";
 		}
 	}
+
+	loadUserId();
 
 	loadHighScores();
 
