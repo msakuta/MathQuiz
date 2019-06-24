@@ -69,6 +69,7 @@
 
 		<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase-app.js"></script>
 		<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase-firestore.js"></script>
+		<script src="qrcodejs/qrcode.min.js"></script>
 
 	</head>
 	<body>
@@ -122,10 +123,15 @@
 		<div id="points" style="font-size: 15pt; display:none; font-weight: bold"></div>
 		<hr>
 		<h2>Your performance:</h2>
-		<label for="userId">User Id</label>
-		<input type="text" id="userId" size="40">
-		<input type="button" value="Reload stats" onclick="reloadHighScores()">
-		<input type="button" value="Generate User Id" onclick="generateUserId()">
+		<input type="button" value="Show User Id" onclick="toggleShowUserId(this)">
+		<input type="button" value="Show User Id QRCode" onclick="toggleShowUserIdQRCode(this)">
+		<div id="userIdBar" style="display: none">
+			<label for="userId">User Id</label>
+			<input type="text" id="userId" size="40">
+			<input type="button" value="Reload stats" onclick="reloadHighScores()">
+			<input type="button" value="Generate User Id" onclick="generateUserId()">
+		</div>
+		<div id="qrcode" style="display: none"></div>
 		<div>* Only the user id and statistics are saved on the server.</div>
 		<div id="highScores"></div>
 		<input type="button" value="Reset stats" onclick="resetStats()">
@@ -1312,6 +1318,20 @@ function loadHighScoresFromLocalStorage(){
 }
 
 var userId = "";
+var userIdQRCode = null;
+
+function refreshQRCode(){
+	var elem = document.getElementById('qrcode');
+	// Only generate QRCode if the div is visible
+	if(elem.style.display === 'block'){
+		if(!userIdQRCode)
+			userIdQRCode = new QRCode(elem, userId);
+		else{
+			userIdQRCode.clear();
+			userIdQRCode.makeCode(userId);
+		}
+	}
+}
 
 function saveUserIdFromUI(){
 	var elem = document.getElementById("userId")
@@ -1326,6 +1346,19 @@ function saveUserIdFromUI(){
 		alert("User Id must be " + userIdLength.toString() + " characters hexadecimal number.");
 		return false;
 	}
+}
+
+function toggleShowUserId(button){
+	var elem = document.getElementById('userIdBar');
+	elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
+	button.value = elem.style.display === 'none' ? 'Show User Id' : 'Hide User Id';
+}
+
+function toggleShowUserIdQRCode(button){
+	var elem = document.getElementById('qrcode');
+	elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
+	refreshQRCode();
+	button.value = elem.style.display === 'none' ? 'Show User Id QRCode' : 'Hide User Id QRCode';
 }
 
 function reloadHighScores(){
@@ -1510,6 +1543,7 @@ function randomizeUserId(){
 	var elem = document.getElementById("userId");
 	if(elem)
 		elem.value = userId;
+	refreshQRCode();
 	return userId;
 }
 
@@ -1522,6 +1556,7 @@ function loadUserId(){
 		var elem = document.getElementById("userId");
 		if(elem)
 			elem.value = st;
+		refreshQRCode();
 	}
 	else{
 		// If the data is not as expected, regenerate random id
