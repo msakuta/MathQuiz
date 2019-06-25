@@ -118,7 +118,7 @@
 <span class="nobr"><input type="radio" name="answer" id="4"><span id="ans4"></span></span>
 <p><input type="button" value="Answer" onclick="answer()"></p>
 </div>
-		<div id="message" style="font-size: 15pt; color: red; font-weight: bold"></div>
+		<div id="message" style="font-size: 17pt; color: red; font-weight: bold"></div>
 		<div><input type="button" id="next" onclick="next()" value="Next Problem" style="display: none"></div>
 		<div id="points" style="font-size: 15pt; display:none; font-weight: bold"></div>
 		<hr>
@@ -128,10 +128,11 @@
 		<div id="userIdBar" style="display: none">
 			<label for="userId">User Id</label>
 			<input type="text" id="userId" size="40">
-			<input type="button" value="Reload stats" onclick="reloadHighScores()">
+			<input type="button" value="Set user Id" onclick="reloadHighScores()">
 			<input type="button" value="Generate User Id" onclick="generateUserId()">
 		</div>
 		<div id="qrcode" style="display: none"></div>
+		<div>* You can copy and paste user id to another browser to continue playing with the same stats.</div>
 		<div>* Only the user id and statistics are saved on the server.</div>
 		<div id="highScores"></div>
 		<input type="button" value="Reset stats" onclick="resetStats()">
@@ -1204,18 +1205,22 @@ function answer(){
 		return null;
 	})();
 
+	var color;
 	if(radio.checked){
 		message = "Correct";
+		color = "#007f00";
 		if(lastClass)
 			scores[lastClass].corrects++;
 	}
 	else{
 		message = "Incorrect";
+		color = "#ff0000";
 		if(lastClass)
 			scores[lastClass].incorrects++;
 	}
 	var messageElem = document.getElementById("message");
 	messageElem.innerHTML = message;
+	messageElem.style.color = color;
 
 	var nextElem = document.getElementById("next");
 	nextElem.value = currentProblem < probCount-1 ? "Next Problem" : "Finish";
@@ -1396,10 +1401,10 @@ function loadHighScores(){
 var globalScores = null;
 
 function loadGlobalStats(){
-	db.collection("users").get().then((query) => {
+	db.collection("users").get().then(function(query){
 		var buff = [];
 		globalScores = {};
-		query.forEach((doc) => {
+		query.forEach(function(doc){
 			var data = doc.data();
 			for(var key in data.scores){
 				var value = data.scores[key];
@@ -1418,7 +1423,7 @@ function loadGlobalStats(){
 		});
 		updateHighScores();
 	})
-	.catch((error)=>{
+	.catch(function(error){
 		console.log("Failed to load data");
 	});
 }
@@ -1505,7 +1510,7 @@ function updateHighScores(){
 			}
 			else{
 				var ratioVal = gv.corrects / (gv.incorrects + gv.corrects);
-				globalRatio.innerHTML = (100 * ratioVal).toFixed(1) + '%';
+				globalRatio.innerHTML = (100 * ratioVal).toFixed(1) + '% / ' + (gv.incorrects + gv.corrects).toFixed();
 				globalRatio.style.backgroundColor = 'rgb(' + (255 * (1 - ratioVal)).toFixed() + ',' + (128 + 127 * ratioVal).toFixed() + ',1)';
 			}
 			el.appendChild(globalRatio);
