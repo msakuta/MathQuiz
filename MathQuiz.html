@@ -101,7 +101,7 @@
 		<tr><th colspan="2"><input type="checkbox" id="graduate" onclick="onGrad(this.checked)">Graduate/specific field math</th></tr>
 		<tr><td><input type="checkbox" id="difform">Differential forms</td>
 		<td><input type="checkbox" id="quatadd">Quaternion addition and subtraction</td></tr>
-		<tr><td><input type="checkbox" id="quatmul">Quaternion multiplication</td></tr>
+		<tr><td><input type="checkbox" id="quatmul2">Quaternion multiplication</td></tr>
 		</table>
 		<p><input type="button" onclick="start()" value="Start Over"></p>
 		<table id="scoreboard">
@@ -974,7 +974,7 @@ inherit(QuatMul, Quat);
 QuatMul.prototype.solution = function(){
 	function mulQuat(op1, op2){
 		return {
-			w: op1.w * op2.w - op1.i * op1.i - op1.j * op2.j - op1.k * op2.k,
+			w: op1.w * op2.w - op1.i * op2.i - op1.j * op2.j - op1.k * op2.k,
 			i: op1.w * op2.i + op1.i * op2.w + op1.j * op2.k - op1.k * op2.j,
 			j: op1.w * op2.j + op1.j * op2.w + op1.k * op2.i - op1.i * op2.k,
 			k: op1.w * op2.k + op1.k * op2.w + op1.i * op2.j - op1.j * op2.i
@@ -1071,7 +1071,7 @@ function start(){
 		probClasses.push([0.5, QuatAdd]);
 		probClasses.push([0.5, QuatSub]);
 	}
-	if(document.getElementById("quatmul").checked){
+	if(document.getElementById("quatmul2").checked){
 		probClasses.push([1, QuatMul]);
 	}
 	if(probClasses.length === 0){
@@ -1263,7 +1263,7 @@ var classes = {
 	"euler": {"difficulty": 2, "dispName": "Euler equation", probs: [[1, EulerFormula]]},
 	"difform": {"difficulty": 3, "dispName": "Differential forms", probs: [[0.5, DifFormAdd], [0.5, DifFormMul]]},
 	"quatadd": {"difficulty": 1, "dispName": "Quaternion addition", probs: [[0.5, QuatAdd], [0.5, QuatSub]]},
-	"quatmul": {"difficulty": 2, "dispName": "Quaternion multiplication", probs: [[1, QuatMul]]},
+	"quatmul2": {"difficulty": 2, "dispName": "Quaternion multiplication", probs: [[1, QuatMul]]},
 };
 
 function onStar(num, checkBox){
@@ -1299,7 +1299,7 @@ function onUndergrad(check){
 function onGrad(check){
 	document.getElementById("difform").checked = check;
 	document.getElementById("quatadd").checked = check;
-	document.getElementById("quatmul").checked = check;
+	document.getElementById("quatmul2").checked = check;
 }
 
 var scores = undefined;
@@ -1387,6 +1387,12 @@ function loadHighScores(){
 			//var elem = document.getElementById("title");
 			//elem.innerHTML = doc.data().hello;
 			scores = doc.data().scores;
+
+			// Create empty entry for new problem classes
+			for(var key in classes){
+				if(!(key in scores))
+					scores[key] = {corrects: 0, incorrects: 0};
+			}
 		} else {
 			console.log("No user");
 			resetStatsInt();
@@ -1419,6 +1425,12 @@ function loadGlobalStats(){
 				else{
 					globalScores[key] = value;
 				}
+			}
+
+			// Create empty entry for new problem classes
+			for(var key in classes){
+				if(!(key in globalScores))
+					globalScores[key] = {corrects: 0, incorrects: 0};
 			}
 		});
 		updateHighScores();
