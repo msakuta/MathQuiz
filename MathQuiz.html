@@ -764,7 +764,7 @@ function EulerFormula(){
 
 		// Inverse problems
 		"\\cos(\\theta) + i\\sin(\\theta)",
-		"\\frac{e^{i\\theta} - e^{-i\\theta}}{2}",
+		"\\frac{e^{i\\theta} - e^{-i\\theta}}{2i}",
 		"\\frac{e^{i\\theta} + e^{-i\\theta}}{2}",
 		"\\frac{e^{\\theta} - e^{-\\theta}}{2}",
 		"\\frac{e^{\\theta} + e^{-\\theta}}{2}",
@@ -777,7 +777,7 @@ EulerFormula.prototype.solution = function(){
 		case "e^{i\\theta}":
 			return "\\cos(\\theta) + i\\sin(\\theta)";
 		case "\\sin(\\theta)":
-			return "\\frac{e^{i\\theta} - e^{-i\\theta}}{2}";
+			return "\\frac{e^{i\\theta} - e^{-i\\theta}}{2i}";
 		case "\\cos(\\theta)":
 			return "\\frac{e^{i\\theta} + e^{-i\\theta}}{2}";
 		case "\\sinh(\\theta)":
@@ -788,7 +788,7 @@ EulerFormula.prototype.solution = function(){
 		// Inverse problems
 		case "\\cos(\\theta) + i\\sin(\\theta)":
 			return "e^{i\\theta}";
-		case "\\frac{e^{i\\theta} - e^{-i\\theta}}{2}":
+		case "\\frac{e^{i\\theta} - e^{-i\\theta}}{2i}":
 			return "\\sin(\\theta)";
 		case "\\frac{e^{i\\theta} + e^{-i\\theta}}{2}":
 			return "\\cos(\\theta)";
