@@ -3,6 +3,7 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore/lite';
 import starImage from '../static/img/star.png';
 import starDisabledImage from '../static/img/star-disabled.png';
+import QRCode from 'qrcode';
 
 var firebaseConfig = {
 	apiKey: "AIzaSyADyNCd36C52-hAxCocNvJnqOfBL_TbD5U",
@@ -1183,18 +1184,13 @@ function loadHighScoresFromLocalStorage(){
 }
 
 var userId = "";
-var userIdQRCode = null;
 
 function refreshQRCode(){
+    const container = document.getElementById('qrcodeContainer');
 	var elem = document.getElementById('qrcode');
 	// Only generate QRCode if the div is visible
-	if(elem.style.display === 'block'){
-		if(!userIdQRCode)
-			userIdQRCode = new QRCode(elem, userId);
-		else{
-			userIdQRCode.clear();
-			userIdQRCode.makeCode(userId);
-		}
+	if(container.style.display === 'block'){
+        QRCode.toCanvas(elem, userId);
 	}
 }
 
@@ -1220,7 +1216,7 @@ function toggleShowUserId(button){
 }
 
 function toggleShowUserIdQRCode(button){
-	var elem = document.getElementById('qrcode');
+	var elem = document.getElementById('qrcodeContainer');
 	elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
 	refreshQRCode();
 	button.value = elem.style.display === 'none' ? 'Show User Id QRCode' : 'Hide User Id QRCode';
@@ -1499,6 +1495,9 @@ startButton.addEventListener("click", start);
 
 const nextButton = document.getElementById("next");
 nextButton.addEventListener("click", next);
+
+const qrCodeButton = document.getElementById("qrCode");
+qrCodeButton.addEventListener("click", toggleShowUserIdQRCode);
 
 const answerButton = document.getElementById("answer");
 answerButton.addEventListener("click", answer);
