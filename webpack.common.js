@@ -4,10 +4,11 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
   entry: './src/main.js',
+  target: 'web',
   plugins: [
     new HtmlWebpackPlugin({
       title: 'Math Quiz',
-      template: "./MathQuiz.html"
+      template: "./static/MathQuiz.html"
     }),
     new CleanWebpackPlugin(),
   ],
@@ -15,7 +16,13 @@ module.exports = {
     rules: [
       {
         test: /\.js$/,
-        use: 'babel-loader'
+        use: {
+          loader: 'babel-loader',
+          // options: {
+          //   presets: ['@babel/preset-env']
+          // }
+        },
+        exclude: /node_modules/
       },
       {
         test: /\.(png|svg|jpg|gif|obj)$/,
@@ -29,18 +36,23 @@ module.exports = {
         ],
       },
       {
-        test: /\.css$/,
-        use: [
-          'style-loader',
-          'css-loader',
-        ],
+        test: /\.html$/,
+        loader: 'html-loader'
       },
+      // {
+      //   test: /\.css$/,
+      //   use: [
+      //     'style-loader',
+      //     'css-loader',
+      //   ],
+      // },
     ],
   },
-  resolve: {
-    extensions: [ '.js' ],
-  },
+  // resolve: {
+  //   extensions: [ '.js' ],
+  // },
   output: {
+    globalObject: 'this',
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
   },

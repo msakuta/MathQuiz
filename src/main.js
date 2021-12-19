@@ -1,4 +1,6 @@
-'use strict';
+import 'babel-polyfill';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore/lite';
 
 var firebaseConfig = {
 	apiKey: "AIzaSyADyNCd36C52-hAxCocNvJnqOfBL_TbD5U",
@@ -10,10 +12,10 @@ var firebaseConfig = {
 	appId: "1:701571234785:web:a526b6acd52ba788"
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore through Firebase
-var db = firebase.firestore();
+var db = getFirestore(app);
 
 // Constants
 var userIdLength = 40; // We assume 40 bytes are long enough for collision avoidance until 16^20 ~ 1.2e24 users.
@@ -1235,9 +1237,7 @@ function loadHighScores(){
 		return;
 	}
 
-	db.collection('/users')
-	.doc(userId)
-	.get()
+	getDoc(doc(collection(db, '/users'), userId))
 	.then(function(doc) {
 		if (doc.exists) {
 			//var elem = document.getElementById("title");
@@ -1263,7 +1263,7 @@ function loadHighScores(){
 var globalScores = null;
 
 function loadGlobalStats(){
-	db.collection("users").get().then(function(query){
+	getDocs(collection(db, "users")).then(function(query){
 		var buff = [];
 		globalScores = {};
 		query.forEach(function(doc){
@@ -1397,7 +1397,7 @@ function saveHighScores(){
 		return;
 	}
 
-	db.collection("/users").doc(userId).set({scores: scores})
+	setDoc(doc(collection(db, "/users"), userId), {scores: scores})
 	.then(function() {
 		console.log("Document successfully written!");
 	})
@@ -1447,7 +1447,7 @@ function generateUserId(){
 	}
 }
 
-window.onload = function(){
+global.onload = function(){
 
 	// Insert difficulty stars in front of problem classes
 	for(var k in classes){
@@ -1477,3 +1477,38 @@ window.onload = function(){
 	start();
 }
 
+for(let i = 0; i < 3; i++) {
+    const starButton = document.getElementById(`star${i + 1}`);
+    const difficulty = i + 1;
+    starButton.addEventListener("click", (event) => onStar(difficulty, event.target));
+}
+
+const highSchoolButton = document.getElementById("highSchool");
+highSchoolButton.addEventListener("click", (event) => onHighSchool(event.target.checked));
+
+const undergradButton = document.getElementById("undergraduate");
+undergradButton.addEventListener("click", (event) => onUndergrad(event.target.checked));
+
+const graduateButton = document.getElementById("graduate");
+graduateButton.addEventListener("click", (event) => onGrad(event.target.checked));
+
+const startButton = document.getElementById("start");
+startButton.addEventListener("click", start);
+
+const nextButton = document.getElementById("next");
+nextButton.addEventListener("click", next);
+
+const answerButton = document.getElementById("answer");
+answerButton.addEventListener("click", answer);
+
+const showUserIdButton = document.getElementById("showUserId");
+showUserIdButton.addEventListener("click", toggleShowUserId);
+
+const setUserIdButton = document.getElementById("setUserId");
+setUserIdButton.addEventListener("click", reloadHighScores);
+
+const gentUserIdButton = document.getElementById("genUserId");
+gentUserIdButton.addEventListener("click", generateUserId);
+
+const resetStatsButton = document.getElementById("resetStats");
+resetStatsButton.addEventListener("click", resetStats);
