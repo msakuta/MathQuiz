@@ -1,6 +1,8 @@
 import 'babel-polyfill';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore/lite';
+import starImage from '../static/img/star.png';
+import starDisabledImage from '../static/img/star-disabled.png';
 
 var firebaseConfig = {
 	apiKey: "AIzaSyADyNCd36C52-hAxCocNvJnqOfBL_TbD5U",
@@ -1459,7 +1461,7 @@ global.onload = function(){
 			var star = document.createElement("img");
 			var index = elem.parentElement.insertBefore(star, elem.nextSibling);
 			// We're inserting in the reversed order of appearance, so i is counted from maxDifficulty.
-			star.setAttribute("src", maxDifficulty - i - 1 < classes[k].difficulty ? "img/star.png" : "img/star-disabled.png");
+			star.setAttribute("src", maxDifficulty - i - 1 < classes[k].difficulty ? starImage : starDisabledImage);
 			// star.style.backgroundImage = "url(star.png)";
 			// star.style.position = "relative";
 			// star.style.display = "inline-block";
