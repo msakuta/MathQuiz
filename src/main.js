@@ -6,13 +6,13 @@ import starDisabledImage from '../static/img/star-disabled.png';
 import QRCode from 'qrcode';
 
 var firebaseConfig = {
-	apiKey: "AIzaSyADyNCd36C52-hAxCocNvJnqOfBL_TbD5U",
-	authDomain: "mathquiz-38728.firebaseapp.com",
-	databaseURL: "https://mathquiz-38728.firebaseio.com",
-	projectId: "mathquiz-38728",
-	storageBucket: "",
-	messagingSenderId: "701571234785",
-	appId: "1:701571234785:web:a526b6acd52ba788"
+    apiKey: process.env.API_KEY,
+    authDomain: process.env.AUTH_DOMAIN,
+    databaseUrl: process.env.DATABASE_URL,
+    projectId: process.env.PROJECT_ID,
+    storageBucket: process.env.STORAGE_BUCKET,
+    messagingSenderId: process.env.MESSAGING_SENDER_ID,
+    appId: process.env.APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
