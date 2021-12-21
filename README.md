@@ -11,7 +11,17 @@ http://msakuta.github.io/MathQuiz/MathQuiz.html
 * Install npm 12+
 * `npm i`
 * `npm run build`
+* Prepare `.env` containing the following keys to save statistics to Firebase
 
+```
+API_KEY=
+AUTH_DOMAIN=
+DATABASE_URL=
+PROJECT_ID=
+STORAGE_BUCKET=
+MESSAGING_SENDER_ID=
+APP_ID=
+```
 
 ## How to serve
 
