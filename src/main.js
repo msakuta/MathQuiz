@@ -1,163 +1,24 @@
-<!DOCTYPE html>
-<html lang="en">
-	<head>
-		<title>MathQuiz</title>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<style>
-			body {
-				color: #000000;
-				font-size:15px;
-				text-align:center;
-
-				background-color: #f0f0f0;
-				margin: 0px;
-			}
-
-			#container{
-				position: relative;
-			}
-
-			#points{
-				font-size: 25px;
-			}
-
-			#problem{
-				margin: 10px;
-			}
-
-			.nobr{white-space: nowrap}
-
-			table{
-				background-color: #f7c0a0;
-				border: 3px solid #7f7f7f;
-				border-collapse: collapse;
-				/* Centering */
-				margin-left: auto;
-				margin-right: auto;
-			}
-			td{background-color: #ffe0d0}
-			th{background-color: #e0c0a0}
-			td, th{padding: 2px; border: 2px solid #7f7f7f}
-
-			.green{
-				background-color: #0f0;
-			}
-
-			.red{
-				background-color: #f70;
-			}
-		</style>
-		<!--script type="text/x-mathjax-config">
-		MathJax.Hub.Config({
-		  tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]},
-		  TeX: {
-			TagSide: "left",
-			Macros: {
-			  T: '^{\\mathrm T}',
-			  RR: '{\\bf R}',
-			  bold: ['{\\bf #1}',1]
-			}
-		  }
-		});
-		</script-->
-		<!--script type="text/javascript"
-		 src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
-		</script-->
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.css" integrity="sha384-exe4Ak6B0EoJI0ogGxjJ8rn+RN3ftPnEQrGwX59KTCl5ybGzvHGKjhPKk/KC3abb" crossorigin="anonymous">
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.9.0-alpha2/katex.min.js" integrity="sha384-OMvkZ24ANLwviZR2lVq8ujbE/bUO8IR1FdBrKLQBI14Gq5Xp/lksIccGkmKL8m+h" crossorigin="anonymous"></script>
-
-		<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase-app.js"></script>
-		<script src="https://www.gstatic.com/firebasejs/6.2.2/firebase-firestore.js"></script>
-		<script src="qrcodejs/qrcode.min.js"></script>
-
-	</head>
-	<body>
-		<h1>MathQuiz</h1>
-		Select classes of problems below and press "Start Over".
-		<table style="text-align: left;  border: 2px solid #afafaf">
-		<tr><th colspan="3">Selection by Difficulty</th></tr>
-		<tr><td><input type="checkbox" id="star1" onclick="onStar(1, this)"><img src="img/star.png"></td>
-			<td><input type="checkbox" id="star2" onclick="onStar(2, this)"><img src="img/star.png"><img src="img/star.png"></td>
-			<td><input type="checkbox" id="star3" onclick="onStar(3, this)"><img src="img/star.png"><img src="img/star.png"><img src="img/star.png"></td></tr>
-		</table>
-		<table style="text-align: left;  border: 2px solid #afafaf">
-		<tr><th colspan="2"><input type="checkbox" id="highschool" onclick="onHighSchool(this.checked)" checked>High school math</th></tr>
-		<tr><td><input type="checkbox" id="dpoly" checked>Derivative of polynomials</td>
-		<td><input type="checkbox" id="delem" checked>Derivative of elementary functions</td></tr>
-		<tr><td><input type="checkbox" id="ipoly" checked>Integral of polynomials</td>
-		<td><input type="checkbox" id="ielem" checked>Integral of elementary functions</td></tr>
-		<tr><td><input type="checkbox" id="comp" checked>Complex numbers</td>
-		<td><input type="checkbox" id="compdiv">Complex numbers division</td></tr>
-		<tr><td><input type="checkbox" id="matvec" checked>Matrix and Vector product</td>
-		<td><input type="checkbox" id="matmat" checked>Matrix and Matrix product</td></tr>
-		<tr><td><input type="checkbox" id="matdet" checked>Matrix Determinant</td>
-		<td><input type="checkbox" id="matinv" checked>Matrix Inversion</td></tr>
-		<tr><th colspan="2"><input type="checkbox" id="undergraduate" onclick="onUndergrad(this.checked)" checked>Undergraduate math</th></tr>
-		<tr><td><input type="checkbox" id="pdpoly" checked>Partial derivative of polynomials</td>
-		<td><input type="checkbox" id="phdpoly" checked>Higher order derivatives</td></tr>
-		<tr><td><input type="checkbox" id="taylor" checked>Taylor series</td>
-		<td><input type="checkbox" id="euler" checked>Euler's formula</td></tr>
-		<tr><th colspan="2"><input type="checkbox" id="graduate" onclick="onGrad(this.checked)">Graduate/specific field math</th></tr>
-		<tr><td><input type="checkbox" id="difform">Differential forms</td>
-		<td><input type="checkbox" id="quatadd">Quaternion addition and subtraction</td></tr>
-		<tr><td><input type="checkbox" id="quatmul2">Quaternion multiplication</td></tr>
-		</table>
-		<p><input type="button" onclick="start()" value="Start Over"></p>
-		<table id="scoreboard">
-		</table>
-		<hr>
-		<div id="container">
-
-			<div id="problem">
-			</div>
-
-<span class="nobr"><input type="radio" name="answer" id="1"><span id="ans1"></span></span>
-<span class="nobr"><input type="radio" name="answer" id="2"><span id="ans2"></span></span>
-<span class="nobr"><input type="radio" name="answer" id="3"><span id="ans3"></span></span>
-<span class="nobr"><input type="radio" name="answer" id="4"><span id="ans4"></span></span>
-<p><input type="button" value="Answer" onclick="answer()"></p>
-</div>
-		<div id="message" style="font-size: 17pt; color: red; font-weight: bold"></div>
-		<div><input type="button" id="next" onclick="next()" value="Next Problem" style="display: none"></div>
-		<div id="points" style="font-size: 15pt; display:none; font-weight: bold"></div>
-		<hr>
-		<h2>Your performance:</h2>
-		<input type="button" value="Show User Id" onclick="toggleShowUserId(this)">
-		<input type="button" value="Show User Id QRCode" onclick="toggleShowUserIdQRCode(this)">
-		<div id="userIdBar" style="display: none">
-			<label for="userId">User Id</label>
-			<input type="text" id="userId" size="40">
-			<input type="button" value="Set user Id" onclick="reloadHighScores()">
-			<input type="button" value="Generate User Id" onclick="generateUserId()">
-		</div>
-		<div id="qrcode" style="display: none"></div>
-		<div>* You can copy and paste user id to another browser to continue playing with the same stats.</div>
-		<div>* Only the user id and statistics are saved on the server.</div>
-		<div id="highScores"></div>
-		<input type="button" value="Reset stats" onclick="resetStats()">
-		<hr>
-		<div>Source on <a href="https://github.com/msakuta/MathQuiz">GitHub</a>.</div>
-		<!--div>Powered by <a href="https://www.mathjax.org/">MathJax</a>.</div-->
-		<div>Powered by <a href="https://khan.github.io/KaTeX/">KaTex</a>.</div>
-
-<script>
-'use strict';
+import 'babel-polyfill';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, getDocs, getDoc, doc, setDoc } from 'firebase/firestore/lite';
+import starImage from '../static/img/star.png';
+import starDisabledImage from '../static/img/star-disabled.png';
+import QRCode from 'qrcode';
 
 var firebaseConfig = {
-	apiKey: "AIzaSyADyNCd36C52-hAxCocNvJnqOfBL_TbD5U",
-	authDomain: "mathquiz-38728.firebaseapp.com",
-	databaseURL: "https://mathquiz-38728.firebaseio.com",
-	projectId: "mathquiz-38728",
-	storageBucket: "",
-	messagingSenderId: "701571234785",
-	appId: "1:701571234785:web:a526b6acd52ba788"
+    apiKey: process.env.API_KEY,
+    authDomain: process.env.AUTH_DOMAIN,
+    databaseUrl: process.env.DATABASE_URL,
+    projectId: process.env.PROJECT_ID,
+    storageBucket: process.env.STORAGE_BUCKET,
+    messagingSenderId: process.env.MESSAGING_SENDER_ID,
+    appId: process.env.APP_ID,
 };
 
-firebase.initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore through Firebase
-var db = firebase.firestore();
+var db = getFirestore(app);
 
 // Constants
 var userIdLength = 40; // We assume 40 bytes are long enough for collision avoidance until 16^20 ~ 1.2e24 users.
@@ -1323,18 +1184,13 @@ function loadHighScoresFromLocalStorage(){
 }
 
 var userId = "";
-var userIdQRCode = null;
 
 function refreshQRCode(){
+    const container = document.getElementById('qrcodeContainer');
 	var elem = document.getElementById('qrcode');
 	// Only generate QRCode if the div is visible
-	if(elem.style.display === 'block'){
-		if(!userIdQRCode)
-			userIdQRCode = new QRCode(elem, userId);
-		else{
-			userIdQRCode.clear();
-			userIdQRCode.makeCode(userId);
-		}
+	if(container.style.display === 'block'){
+        QRCode.toCanvas(elem, userId);
 	}
 }
 
@@ -1360,7 +1216,7 @@ function toggleShowUserId(button){
 }
 
 function toggleShowUserIdQRCode(button){
-	var elem = document.getElementById('qrcode');
+	var elem = document.getElementById('qrcodeContainer');
 	elem.style.display = elem.style.display === 'none' ? 'block' : 'none';
 	refreshQRCode();
 	button.value = elem.style.display === 'none' ? 'Show User Id QRCode' : 'Hide User Id QRCode';
@@ -1379,9 +1235,7 @@ function loadHighScores(){
 		return;
 	}
 
-	db.collection('/users')
-	.doc(userId)
-	.get()
+	getDoc(doc(collection(db, '/users'), userId))
 	.then(function(doc) {
 		if (doc.exists) {
 			//var elem = document.getElementById("title");
@@ -1407,7 +1261,7 @@ function loadHighScores(){
 var globalScores = null;
 
 function loadGlobalStats(){
-	db.collection("users").get().then(function(query){
+	getDocs(collection(db, "users")).then(function(query){
 		var buff = [];
 		globalScores = {};
 		query.forEach(function(doc){
@@ -1541,7 +1395,7 @@ function saveHighScores(){
 		return;
 	}
 
-	db.collection("/users").doc(userId).set({scores: scores})
+	setDoc(doc(collection(db, "/users"), userId), {scores: scores})
 	.then(function() {
 		console.log("Document successfully written!");
 	})
@@ -1591,7 +1445,7 @@ function generateUserId(){
 	}
 }
 
-window.onload = function(){
+global.onload = function(){
 
 	// Insert difficulty stars in front of problem classes
 	for(var k in classes){
@@ -1603,7 +1457,7 @@ window.onload = function(){
 			var star = document.createElement("img");
 			var index = elem.parentElement.insertBefore(star, elem.nextSibling);
 			// We're inserting in the reversed order of appearance, so i is counted from maxDifficulty.
-			star.setAttribute("src", maxDifficulty - i - 1 < classes[k].difficulty ? "img/star.png" : "img/star-disabled.png");
+			star.setAttribute("src", maxDifficulty - i - 1 < classes[k].difficulty ? starImage : starDisabledImage);
 			// star.style.backgroundImage = "url(star.png)";
 			// star.style.position = "relative";
 			// star.style.display = "inline-block";
@@ -1621,7 +1475,41 @@ window.onload = function(){
 	start();
 }
 
-		</script>
+for(let i = 0; i < 3; i++) {
+    const starButton = document.getElementById(`star${i + 1}`);
+    const difficulty = i + 1;
+    starButton.addEventListener("click", (event) => onStar(difficulty, event.target));
+}
 
-	</body>
-</html>
+const highSchoolButton = document.getElementById("highSchool");
+highSchoolButton.addEventListener("click", (event) => onHighSchool(event.target.checked));
+
+const undergradButton = document.getElementById("undergraduate");
+undergradButton.addEventListener("click", (event) => onUndergrad(event.target.checked));
+
+const graduateButton = document.getElementById("graduate");
+graduateButton.addEventListener("click", (event) => onGrad(event.target.checked));
+
+const startButton = document.getElementById("start");
+startButton.addEventListener("click", start);
+
+const nextButton = document.getElementById("next");
+nextButton.addEventListener("click", next);
+
+const qrCodeButton = document.getElementById("qrCode");
+qrCodeButton.addEventListener("click", toggleShowUserIdQRCode);
+
+const answerButton = document.getElementById("answer");
+answerButton.addEventListener("click", answer);
+
+const showUserIdButton = document.getElementById("showUserId");
+showUserIdButton.addEventListener("click", toggleShowUserId);
+
+const setUserIdButton = document.getElementById("setUserId");
+setUserIdButton.addEventListener("click", reloadHighScores);
+
+const gentUserIdButton = document.getElementById("genUserId");
+gentUserIdButton.addEventListener("click", generateUserId);
+
+const resetStatsButton = document.getElementById("resetStats");
+resetStatsButton.addEventListener("click", resetStats);
