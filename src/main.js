@@ -1237,15 +1237,16 @@ function loadHighScores(){
 
 	getDoc(doc(collection(db, '/users'), userId))
 	.then(function(doc) {
-		if (doc.exists) {
-			//var elem = document.getElementById("title");
-			//elem.innerHTML = doc.data().hello;
-			scores = doc.data().scores;
+		if (doc.exists()) {
+			const data = doc.data();
+			if (data) {
+				scores = doc.data().scores;
 
-			// Create empty entry for new problem classes
-			for(var key in classes){
-				if(!(key in scores))
-					scores[key] = {corrects: 0, incorrects: 0};
+				// Create empty entry for new problem classes
+				for(var key in classes){
+					if(!(key in scores))
+						scores[key] = {corrects: 0, incorrects: 0};
+				}
 			}
 		} else {
 			console.log("No user");
