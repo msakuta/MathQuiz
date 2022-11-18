@@ -4,7 +4,7 @@
   "description": "A HTML+JavaScript application that generates mathematics problems randomly",
   "main": "main.js",
   "dependencies": {
-    "webpack": "^4.43.0",
+    "webpack": "^4.46.0",
     "webpack-cli": "^3.3.11"
   },
   "scripts": {
